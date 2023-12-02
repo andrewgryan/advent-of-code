@@ -8,40 +8,30 @@ STDOUT = 1
 segment readable executable
 entry main
 main:
-        ; Solution
-        xor rcx, rcx          ; Zero register
-        xor rdi, rdi          ; Zero register
-        mov r8, input         ; Copy address
-        mov r9, input_len     ; Copy length
+        lea r11, [input]
+        mov r12, input_len
+        xor r13, r13
 
+        mov r14, 3
 .loop:
-        mov dil, byte [r8]        ; Read a character
-        ; sub dil, 48
-        ; cmp dil, 9
+        cmp r14, 0
+        jle .done
 
-        dec r9
-        jz .done
+        cmp r12, 0
+        jle .done
 
-        cmp rdi, 0x0a        ; Newline
-        je .loop_line
+        mov rsi, r11
+        mov rdi, r12
+        call line_length
+        mov r8, rax
 
-        inc r8
-        jmp .loop
-
-.loop_line:
-        inc rcx        ; Increment line counter
-        inc r8         ; Increment file pointer
-        jmp .loop      ; Continue
-
-.done:
-
-        mov rsi, input
-        mov rdi, 18
+        mov rsi, r11
+        mov rdi, r8
         call last_digit
         push rax
 
-        mov rsi, input
-        mov rdi, 18
+        mov rsi, r11
+        mov rdi, r8
         call first_digit
         push rax
 
@@ -49,13 +39,39 @@ main:
         pop rdi
         call calibration_value
 
-        mov rsi, rax
+        add r13, rax               ; Add value to total
+
+        inc r8                     ; Include \n
+        add r11, r8                ; Move to next line
+        sub r12, r8                ; Reduce file length
+        dec r14
+        jmp .loop
+
+.done:
+        mov rsi, r13
         call print_register
 
         ; Exit system call
         mov rax, SYS_exit
         mov rdi, 0
         syscall
+
+
+; @param rsi - Address of string
+line_length:
+        xor r8, r8                ; Count
+        xor r9, r9                ; Character
+.loop:
+        mov r9b, byte [rsi]       ; Read ASCII byte
+        cmp r9b, 0x0a             ; Compare \n
+        je .done
+
+        inc rsi                   ; Next byte
+        inc r8                    ; Increment count
+        jmp .loop
+.done:
+        mov rax, r8
+        ret
 
 
 ; @param rsi - Address of string
