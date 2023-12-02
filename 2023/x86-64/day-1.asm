@@ -38,12 +38,12 @@ main:
         ; mul rdi              ; rax = rax * rdi
         ; add rax, rdi         ; rax = rax + rdi
 
-        mov rsi, 123456789
+        mov rsi, rcx
         call print_register
 
         ; Exit system call
         mov rax, SYS_exit
-        mov rdi, rdx
+        mov rdi, 0
         syscall
 
 
