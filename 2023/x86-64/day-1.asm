@@ -7,50 +7,40 @@ STDOUT = 1
 segment readable executable
 entry main
 main:
-        ; Print
-        mov rax, SYS_write
-        mov rdi, STDOUT
-        mov rsi, input
-        mov rdx, input_len
-        syscall
+        ; Solution
+        xor rcx, rcx          ; Zero register
+        xor rdi, rdi          ; Zero register
+        mov r8, input         ; Copy address
+        mov r9, input_len     ; Copy length
 
-        ; Detect first number
-        xor rdi, rdi  ; Reset rdi buffer
-        mov r8, input ; Copy address
 .loop:
         mov dil, byte [r8]
-        sub dil, 48
-        cmp dil, 9
-        jle .done
+        ; sub dil, 48
+        ; cmp dil, 9
+
+        dec r9
+        jz .done
+
+        cmp rdi, 0x0a        ; Newline
+        je .loop_line
 
         inc r8
         jmp .loop
-.done:
 
-        ; Count line length
-        mov rdi, input
-        call line_length
+.loop_line:
+        inc rcx        ; Increment line counter
+        inc r8         ; Increment file pointer
+        jmp .loop      ; Continue
+
+.done:
+        ; mov rax, 0x0a        ; rax = 10
+        ; mul rdi              ; rax = rax * rdi
+        ; add rax, rdi         ; rax = rax + rdi
 
         ; Exit system call
-        mov rdi, rax
         mov rax, SYS_exit
+        mov rdi, rcx
         syscall
-
-
-line_length:
-        xor rsi, rsi          ; Reset rsi register
-        xor r8, r8            ; Reset r8 register
-.loop:
-        mov sil, byte [rdi]   ; Read a byte
-        cmp sil, 10           ; Compare to newline code
-        je .done
-
-        inc rdi               ; Move to next byte
-        inc r8                ; Increment counter
-        jmp .loop
-.done:
-        mov rax, r8
-        ret
 
 
 segment readable writable
