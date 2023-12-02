@@ -15,7 +15,7 @@ main:
         mov r9, input_len     ; Copy length
 
 .loop:
-        mov dil, byte [r8]
+        mov dil, byte [r8]        ; Read a character
         ; sub dil, 48
         ; cmp dil, 9
 
@@ -34,17 +34,27 @@ main:
         jmp .loop      ; Continue
 
 .done:
-        ; mov rax, 0x0a        ; rax = 10
-        ; mul rdi              ; rax = rax * rdi
-        ; add rax, rdi         ; rax = rax + rdi
 
-        mov rsi, rcx
+        mov rsi, 9
+        mov rdi, 5
+        call calibration_value
+
+        mov rsi, rax
         call print_register
 
         ; Exit system call
         mov rax, SYS_exit
         mov rdi, 0
         syscall
+
+
+; @param rsi - First digit
+; @param rdi - Second digit
+calibration_value:
+        mov rax, 0x0a        ; rax = 10
+        mul rsi              ; rax = rax * rsi
+        add rax, rdi         ; rax = rax + rdi
+        ret
 
 
 ; @param rsi - number to print
