@@ -27,10 +27,30 @@ main:
         jmp .loop
 .done:
 
+        ; Count line length
+        mov rdi, input
+        call line_length
+
         ; Exit system call
+        mov rdi, rax
         mov rax, SYS_exit
-        ; mov rdi, 0
         syscall
+
+
+line_length:
+        xor rsi, rsi          ; Reset rsi register
+        xor r8, r8            ; Reset r8 register
+.loop:
+        mov sil, byte [rdi]   ; Read a byte
+        cmp sil, 10           ; Compare to newline code
+        je .done
+
+        inc rdi               ; Move to next byte
+        inc r8                ; Increment counter
+        jmp .loop
+.done:
+        mov rax, r8
+        ret
 
 
 segment readable writable
