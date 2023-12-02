@@ -16,7 +16,8 @@ main:
 
         ; Exit system call
         mov rax, SYS_exit
-        mov rdi, 0
+        xor rdi, rdi
+        mov dil, byte [input]
         syscall
 
 
