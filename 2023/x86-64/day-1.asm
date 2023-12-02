@@ -14,10 +14,22 @@ main:
         mov rdx, input_len
         syscall
 
+        ; Detect first number
+        xor rdi, rdi  ; Reset rdi buffer
+        mov r8, input ; Copy address
+.loop:
+        mov dil, byte [r8]
+        sub dil, 48
+        cmp dil, 9
+        jle .done
+
+        inc r8
+        jmp .loop
+.done:
+
         ; Exit system call
         mov rax, SYS_exit
-        xor rdi, rdi
-        mov dil, byte [input]
+        ; mov rdi, 0
         syscall
 
 
