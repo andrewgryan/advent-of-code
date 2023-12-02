@@ -35,8 +35,18 @@ main:
 
 .done:
 
-        mov rsi, 9
-        mov rdi, 5
+        mov rsi, input
+        mov rdi, 18
+        call last_digit
+        push rax
+
+        mov rsi, input
+        mov rdi, 18
+        call first_digit
+        push rax
+
+        pop rsi
+        pop rdi
         call calibration_value
 
         mov rsi, rax
@@ -46,6 +56,53 @@ main:
         mov rax, SYS_exit
         mov rdi, 0
         syscall
+
+
+; @param rsi - Address of string
+; @param rdi - Length
+first_digit:
+.loop:
+        xor r9, r9
+        mov r9b, byte [rsi]        ; Read a character
+        sub r9b, 48
+        cmp r9b, 9
+        jle .done
+
+        dec rdi
+        jz .done
+
+        inc rsi
+        jmp .loop
+.done:
+        mov rax, r9
+        ret
+
+
+; @param rsi - Address of string
+; @param rdi - Length
+last_digit:
+        xor r10, r10
+.loop:
+        cmp rdi, 0
+        je .done
+
+        xor r9, r9
+        mov r9b, byte [rsi]        ; Read a character
+        sub r9b, 48                ; Remove ASCII 0
+        cmp r9b, 9                 ; 0-9 check
+        jle .save
+
+        dec rdi                    ; Decrease length
+        inc rsi                    ; Increase string pointer
+        jmp .loop
+.save:
+        dec rdi                    ; Decrease length
+        inc rsi                    ; Increase string pointer
+        mov r10, r9                ; Save parsed digit
+        jmp .loop
+.done:
+        mov rax, r10               ; Return last digit or 0
+        ret
 
 
 ; @param rsi - First digit
