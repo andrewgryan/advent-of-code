@@ -5,6 +5,7 @@ SYS_write = 1
 SYS_exit = 60
 STDOUT = 1
 
+
 segment readable executable
 entry main
 main:
@@ -39,12 +40,31 @@ main:
 
 .done:
         mov rsi, r13
+
+        mov rsi, 110        ; Lower-case o
+        call parse_digit
+
+        mov rsi, rax
         call print_register
 
         ; Exit system call
         mov rax, SYS_exit
         mov rdi, 0
         syscall
+
+
+; @param rsi - Address of string
+; @param rdi - Length
+parse_digit:
+        xor rax, rax
+        cmp rsi, 0x6F
+        je .match
+        jmp .done
+.match:
+        mov rax, 1
+
+.done:
+        ret
 
 
 ; @param rsi - Address of string
@@ -210,3 +230,22 @@ segment readable writable
 input file "input-1"
 input_len = $ - input
 
+; Useful constants
+one db "one"
+one_len = $ - one
+two db "two"
+two_len = $ - two
+three db "three"
+three_len = $ - three
+four db "four"
+four_len = $ - four
+five db "five"
+five_len = $ - five
+six db "six"
+six_len = $ - six
+seven db "seven"
+seven_len = $ - seven
+eight db "eight"
+eight_len = $ - eight
+nine db "nine"
+nine_len = $ - nine
