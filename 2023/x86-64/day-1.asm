@@ -12,7 +12,7 @@ main:
         mov r12, input_len
         xor r13, r13
 
-        mov r14, 2
+        mov r14, 1000
 .loop:
         cmp r14, 0
         jle .done
@@ -72,16 +72,21 @@ parse_line:
 
 
 ; @param rsi - Address of string
+; @param rdi - Length
 line_length:
         xor r8, r8                ; Count
         xor r9, r9                ; Character
 .loop:
+        cmp rdi, 0                ; End of string
+        je .done
+
         mov r9b, byte [rsi]       ; Read ASCII byte
         cmp r9b, 0x0a             ; Compare \n
         je .done
 
         inc rsi                   ; Next byte
         inc r8                    ; Increment count
+        dec rdi                   ; Decrement length
         jmp .loop
 .done:
         mov rax, r8
