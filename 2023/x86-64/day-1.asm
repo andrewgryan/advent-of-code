@@ -12,7 +12,7 @@ main:
         mov r12, input_len
         xor r13, r13
 
-        mov r14, 3
+        mov r14, 2
 .loop:
         cmp r14, 0
         jle .done
@@ -27,17 +27,7 @@ main:
 
         mov rsi, r11
         mov rdi, r8
-        call last_digit
-        push rax
-
-        mov rsi, r11
-        mov rdi, r8
-        call first_digit
-        push rax
-
-        pop rsi
-        pop rdi
-        call calibration_value
+        call parse_line
 
         add r13, rax               ; Add value to total
 
@@ -55,6 +45,30 @@ main:
         mov rax, SYS_exit
         mov rdi, 0
         syscall
+
+
+; @param rsi - Address of string
+; @param rdi - Length
+parse_line:
+
+        push rdi
+        push rsi
+        call last_digit
+        pop rsi
+        pop rdi
+        push rax
+
+        push rdi
+        push rsi
+        call first_digit
+        pop rsi
+        pop rdi
+        push rax
+
+        pop rsi
+        pop rdi
+        call calibration_value
+        ret
 
 
 ; @param rsi - Address of string
