@@ -291,7 +291,12 @@ line_length:
 ; @param rdi - Length
 first_digit:
 .loop:
+        push rsi
+        push rdi
         call parse_ascii_digit
+        pop rdi
+        pop rsi
+
         cmp rax, 0
         jnz .done
 
@@ -312,7 +317,11 @@ last_digit:
         cmp rdi, 0
         je .done
 
+        push rsi
+        push rdi
         call parse_ascii_digit
+        pop rdi
+        pop rsi
         cmp rax, 0
         jnz .save
 
