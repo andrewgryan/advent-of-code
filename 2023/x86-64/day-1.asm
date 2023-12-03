@@ -40,12 +40,6 @@ main:
 
 .done:
         mov rsi, r13
-
-        mov rsi, six
-        mov rdi, six_len
-        call parse_digit
-
-        mov rsi, rax
         call print_register
 
         ; Exit system call
@@ -56,7 +50,26 @@ main:
 
 ; @param rsi - Address of string
 ; @param rdi - Length
-parse_digit:
+parse_ascii_digit:
+        mov rax, 0
+        xor r9, r9
+        mov r9b, byte [rsi]        ; Read a character
+        sub r9b, 48
+        cmp r9b, 9
+        jle .found
+
+        ; Not an ASCII digit return 0
+        xor rax, rax
+        ret
+
+.found:
+        mov rax, r9
+        ret
+
+
+; @param rsi - Address of string
+; @param rdi - Length
+parse_word_digit:
         xor r8, r8
 
         inc r8
@@ -278,11 +291,9 @@ line_length:
 ; @param rdi - Length
 first_digit:
 .loop:
-        xor r9, r9
-        mov r9b, byte [rsi]        ; Read a character
-        sub r9b, 48
-        cmp r9b, 9
-        jle .done
+        call parse_ascii_digit
+        cmp rax, 0
+        jnz .done
 
         dec rdi
         jz .done
@@ -290,7 +301,6 @@ first_digit:
         inc rsi
         jmp .loop
 .done:
-        mov rax, r9
         ret
 
 
@@ -302,11 +312,9 @@ last_digit:
         cmp rdi, 0
         je .done
 
-        xor r9, r9
-        mov r9b, byte [rsi]        ; Read a character
-        sub r9b, 48                ; Remove ASCII 0
-        cmp r9b, 9                 ; 0-9 check
-        jle .save
+        call parse_ascii_digit
+        cmp rax, 0
+        jnz .save
 
         dec rdi                    ; Decrease length
         inc rsi                    ; Increase string pointer
@@ -314,7 +322,7 @@ last_digit:
 .save:
         dec rdi                    ; Decrease length
         inc rsi                    ; Increase string pointer
-        mov r10, r9                ; Save parsed digit
+        mov r10, rax               ; Save parsed digit
         jmp .loop
 .done:
         mov rax, r10               ; Return last digit or 0
