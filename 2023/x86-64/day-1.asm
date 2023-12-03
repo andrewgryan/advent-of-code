@@ -41,7 +41,8 @@ main:
 .done:
         mov rsi, r13
 
-        mov rsi, 110        ; Lower-case o
+        mov rsi, one
+        mov rdi, one_len
         call parse_digit
 
         mov rsi, rax
@@ -56,13 +57,16 @@ main:
 ; @param rsi - Address of string
 ; @param rdi - Length
 parse_digit:
+        xor r9, r9
         xor rax, rax
-        cmp rsi, 0x6F
-        je .match
-        jmp .done
-.match:
-        mov rax, 1
-
+.loop:
+        cmp rdi, 0
+        je .done
+        mov r9b, byte [rsi]
+        add rax, r9
+        inc rsi
+        dec rdi
+        jmp .loop
 .done:
         ret
 
