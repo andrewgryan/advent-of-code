@@ -41,8 +41,8 @@ main:
 .done:
         mov rsi, r13
 
-        mov rsi, two
-        mov rdi, two_len
+        mov rsi, six
+        mov rdi, six_len
         call parse_digit
 
         mov rsi, rax
@@ -57,11 +57,132 @@ main:
 ; @param rsi - Address of string
 ; @param rdi - Length
 parse_digit:
+        xor r8, r8
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
         mov rdx, one
         mov rcx, one_len
         call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, two
+        mov rcx, two_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, three
+        mov rcx, three_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, four
+        mov rcx, four_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, five
+        mov rcx, five_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, six
+        mov rcx, six_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, seven
+        mov rcx, seven_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, eight
+        mov rcx, eight_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        inc r8
+        push r8
+        push rdi
+        push rsi
+        mov rdx, nine
+        mov rcx, nine_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        pop r8
+        cmp rax, 1
+        je .success
+
+        ; No match
+        mov rax, 0
         ret
 
+.success:
+        mov rax, r8
+        ret
 
 ; @param rsi - Address of string
 ; @param rdi - Length
