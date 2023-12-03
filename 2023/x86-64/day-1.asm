@@ -13,7 +13,7 @@ main:
         mov r12, input_len
         xor r13, r13
 
-        mov r14, 1000
+        mov r14, 1000                ; Lines to analyse
 .loop:
         cmp r14, 0
         jle .done
@@ -26,9 +26,13 @@ main:
         call line_length
         mov r8, rax
 
+        push r11
+        push r8
         mov rsi, r11
         mov rdi, r8
         call parse_line
+        pop r8
+        pop r11
 
         add r13, rax               ; Add value to total
 
@@ -46,6 +50,30 @@ main:
         mov rax, SYS_exit
         mov rdi, 0
         syscall
+
+; @param rsi - Address of string
+; @param rdi - Length
+parse_digit:
+        ; ASCII 0-9
+        push rsi
+        push rdi
+        call parse_ascii_digit
+        pop rdi
+        pop rsi
+        cmp rax, 0
+        jnz .done
+
+        ; English one, two, three etc.
+        push rsi
+        push rdi
+        call parse_word_digit
+        pop rdi
+        pop rsi
+        cmp rax, 0
+        jnz .done
+
+.done:
+        ret
 
 
 ; @param rsi - Address of string
@@ -293,7 +321,7 @@ first_digit:
 .loop:
         push rsi
         push rdi
-        call parse_ascii_digit
+        call parse_digit
         pop rdi
         pop rsi
 
@@ -319,7 +347,7 @@ last_digit:
 
         push rsi
         push rdi
-        call parse_ascii_digit
+        call parse_digit
         pop rdi
         pop rsi
         cmp rax, 0
