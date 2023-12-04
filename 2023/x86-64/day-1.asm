@@ -5,6 +5,7 @@ SYS_write = 1
 SYS_exit = 60
 STDOUT = 1
 
+include "util.inc"
 
 segment readable executable
 entry main
@@ -290,28 +291,6 @@ parse_line:
         pop rsi
         pop rdi
         call calibration_value
-        ret
-
-
-; @param rsi - Address of string
-; @param rdi - Length
-line_length:
-        xor r8, r8                ; Count
-        xor r9, r9                ; Character
-.loop:
-        cmp rdi, 0                ; End of string
-        je .done
-
-        mov r9b, byte [rsi]       ; Read ASCII byte
-        cmp r9b, 0x0a             ; Compare \n
-        je .done
-
-        inc rsi                   ; Next byte
-        inc r8                    ; Increment count
-        dec rdi                   ; Decrement length
-        jmp .loop
-.done:
-        mov rax, r8
         ret
 
 
