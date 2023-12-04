@@ -38,3 +38,47 @@ line_length:
 .done:
         mov rax, r8
         ret
+
+
+; @param rsi - Address of string
+; @param rdi - Length
+; @param rdx - Address of pattern
+; @param rcx - Length
+parse_prefix:
+        xor r8, r8
+        xor r9, r9
+        xor rax, rax
+.loop:
+        ; Check string characters remain
+        cmp rdi, 0
+        je .done
+
+        ; Check prefix characters remain
+        cmp rcx, 0
+        je .done
+
+        ; Compare characters
+        mov r8b, byte [rsi]
+        mov r9b, byte [rdx]
+        cmp r8b, r9b
+        jne .done
+
+        ; Next characters
+        inc rsi                ; Next string byte
+        dec rdi                ; Reduce string length
+        inc rdx                ; Next prefix byte
+        dec rcx                ; Reduce prefix length
+
+        jmp .loop
+.done:
+        cmp rcx, 0
+        je .success
+
+        ; Failed to find a full prefix match
+        mov rax, 0
+        ret
+
+.success:
+        ; Matched all prefix characters
+        mov rax, 1
+        ret
