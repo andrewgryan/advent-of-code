@@ -19,7 +19,44 @@ main:
         mov rdi, input_len
         call parse_game_id
         mov rdi, rax
+
+        mov rsi, example
+        mov rdi, example_len
+        call parse_blue
+        mov rdi, rax
         exit rdi
+
+
+parse_blue:
+        push rdi
+        push rsi
+        call parse_digit
+        pop rsi
+        pop rdi
+        push rax
+        cmp rax, -1
+        je .fail
+
+        inc rsi
+        dec rdi
+
+        push rdi
+        push rsi
+        mov rdx, blue
+        mov rcx, blue_len
+        call parse_prefix
+        pop rsi
+        pop rdi
+        cmp rax, 0
+        je .fail
+
+        pop rax
+        ret
+
+.fail:
+        pop rax
+        mov rax, -1
+        ret
 
 
 ; @param rsi - Address
@@ -60,5 +97,14 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
+example db "7 blue"
+example_len = $ - example
+
 game db "Game "
 game_len = $ - game
+red db " red"
+red_len = $ - red
+blue db " blue"
+blue_len = $ - blue
+green db " green"
+green_len = $ - green
