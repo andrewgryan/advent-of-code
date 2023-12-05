@@ -61,7 +61,7 @@ parse_green:
 parse_color:
         push rdi
         push rsi
-        call parse_digit
+        call parse_number
         pop rsi
         pop rdi
         push rax
@@ -101,6 +101,16 @@ parse_game_id:
 .id:
         add rsi, rcx
         call parse_digit
+        ret
+
+
+; @param rsi - Address
+; @param rdi - Length
+parse_number:
+        call parse_digit
+
+        ; Multiply by 10
+        imul rax, 0x0a
         ret
 
 
