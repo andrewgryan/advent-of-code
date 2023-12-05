@@ -22,7 +22,7 @@ main:
 
         mov rsi, example
         mov rdi, example_len
-        call parse_green
+        call parse_number
         mov rdi, rax
         exit rdi
 
@@ -107,11 +107,49 @@ parse_game_id:
 ; @param rsi - Address
 ; @param rdi - Length
 parse_number:
-        call parse_digit
+        push rsi
+        call number_length
+        push rax
 
-        ; Multiply by 10
-        imul rax, 0x0a
+        ; Accumulate number
+        pop r9
+        pop r8
+        xor r10, r10
+        mov r11, 1
+.loop:
+        cmp r9, 0
+        je .done
+
+        lea rsi, [r8 + r9 - 1]   ; Address of next digit
+        call parse_digit
+        imul rax, r11        ; Multiply digit by 10**N
+        add r10, rax         ; Add to total
+        imul r11, 0x0a       ; Next power of 10
+        dec r9               ; Move pointer left
+        jmp .loop
+.done:
+        mov rax, r10
         ret
+
+
+number_length:
+        xor r8, r8
+.next:
+        cmp rdi, 0
+        je .done
+
+        call parse_digit
+        cmp rax, -1
+        je .done
+
+        inc r8         ; Digit counter
+        inc rsi        ; String
+        dec rdi        ; Length
+        jmp .next
+.done:
+        mov rax, r8
+        ret
+
 
 
 ; @param rsi - Address
@@ -136,7 +174,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "7 green"
+example db "42"
 example_len = $ - example
 
 game db "Game "
