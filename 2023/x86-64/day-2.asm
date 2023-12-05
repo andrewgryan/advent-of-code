@@ -22,12 +22,43 @@ main:
 
         mov rsi, example
         mov rdi, example_len
-        call parse_blue
+        call parse_green
         mov rdi, rax
         exit rdi
 
 
+; @param rsi - Address
+; @param rdi - Length
 parse_blue:
+        mov rdx, blue
+        mov rcx, blue_len
+        call parse_color
+        ret
+
+
+; @param rsi - Address
+; @param rdi - Length
+parse_red:
+        mov rdx, red
+        mov rcx, red_len
+        call parse_color
+        ret
+
+
+; @param rsi - Address
+; @param rdi - Length
+parse_green:
+        mov rdx, green
+        mov rcx, green_len
+        call parse_color
+        ret
+
+
+; @param rsi - Address
+; @param rdi - Length
+; @param rdx - Keyword
+; @param rcx - Length
+parse_color:
         push rdi
         push rsi
         call parse_digit
@@ -42,8 +73,6 @@ parse_blue:
 
         push rdi
         push rsi
-        mov rdx, blue
-        mov rcx, blue_len
         call parse_prefix
         pop rsi
         pop rdi
@@ -97,7 +126,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "7 blue"
+example db "7 green"
 example_len = $ - example
 
 game db "Game "
