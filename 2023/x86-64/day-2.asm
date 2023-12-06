@@ -4,6 +4,9 @@ format ELF64 executable
 include "util.inc"
 
 
+SYS_brk = 0x0c
+
+
 segment readable executable
 entry main
 main:
@@ -13,7 +16,7 @@ main:
         call line_length
         mov rdx, rax
 
-        print input, rdx
+        ; print input, rdx
 
         mov rsi, input
         mov rdi, input_len
@@ -23,8 +26,19 @@ main:
         mov rsi, example
         mov rdi, example_len
         call parse_number
-        mov rdi, rax
-        exit rdi
+
+        ; Simple memory allocator
+        mov rsi, 8
+        call alloc
+
+        ; Use allocated memory
+        mov [rax], dword 42
+        mov [rax + 4], dword 42
+
+        mov rsi, qword [rax]
+        call print_register
+
+        exit 0
 
 
 ; @param rsi - Address
@@ -167,6 +181,24 @@ parse_digit:
 
 .fail:
         mov rax, -1
+        ret
+
+
+; Allocator
+; @param rsi - size in bytes
+; @returns rax - address of memory block
+alloc:
+        ; Get breakpoint address
+        mov rax, SYS_brk
+        mov rdi, 0
+        syscall
+
+        ; TODO: implement an allocation algorithm
+
+        ; Increase breakpoint address
+        lea rdi, [rax + rsi]
+        mov rax, SYS_brk
+        syscall
         ret
 
 
