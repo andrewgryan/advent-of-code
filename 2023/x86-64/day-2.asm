@@ -38,6 +38,11 @@ main:
         mov rsi, qword [heap_start]
         call print_register
 
+        print newline, 1
+
+        mov rsi, qword [heap_end]
+        call print_register
+
         exit 0
 
 
@@ -201,6 +206,9 @@ alloc:
         lea rdi, [rax + rsi]
         mov rax, SYS_brk
         syscall
+
+        mov [heap_end], qword rax
+
         ret
 
 
@@ -220,5 +228,8 @@ blue_len = $ - blue
 green db " green"
 green_len = $ - green
 
+newline db 0x0a
+
 ; Allocator private data
-heap_start rq 1
+heap_start dq 0
+heap_end dq 0
