@@ -28,7 +28,7 @@ main:
         call parse_number
 
         ; Simple memory allocator
-        mov rsi, 8
+        mov rsi, 1024        ; 1 kilobyte
         call alloc
 
         ; Use allocated memory
