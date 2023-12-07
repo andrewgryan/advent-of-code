@@ -35,7 +35,7 @@ main:
         mov [rax], dword 42
         mov [rax + 4], dword 42
 
-        mov rsi, qword [rax]
+        mov rsi, qword [heap_start]
         call print_register
 
         exit 0
@@ -193,6 +193,8 @@ alloc:
         mov rdi, 0
         syscall
 
+        mov [heap_start], qword rax
+
         ; TODO: implement an allocation algorithm
 
         ; Increase breakpoint address
@@ -217,3 +219,6 @@ blue db " blue"
 blue_len = $ - blue
 green db " green"
 green_len = $ - green
+
+; Allocator private data
+heap_start rq 1
