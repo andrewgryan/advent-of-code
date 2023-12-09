@@ -12,7 +12,7 @@ entry main
 main:
         mov rsi, input
         mov rdi, input_len
-        mov rdx, 5
+        mov rdx, 4
         call head
 
         exit 0
@@ -21,6 +21,7 @@ main:
 head:
         mov rsi, input
         mov rdi, input_len
+        xor r12, r12
 .loop:
         cmp rdx, 0
         je .exit
@@ -28,9 +29,21 @@ head:
         ; Measure line
         push rdx
         call get_line
-        mov r9, rax
+        push rax
+
+        ; Score current line
+        ; mov rsi, ???
+        ; mov rdi, ???
+        push rsi
+        push rdi
+        mov rdi, rax
+        call score_line
+        add r12, rax
+        pop rdi
+        pop rsi
 
         ; Print current line
+        pop r9
         mov r8, rsi
         push rsi
         push rdi
@@ -47,6 +60,18 @@ head:
         jmp .loop
 
 .exit:
+        push rsi
+        push rdi
+        mov rsi, r12
+        call print_register
+        pop rdi
+        pop rsi
+        ret
+
+
+score_line:
+        xor rax, rax
+        call parse_game_id
         ret
 
 
@@ -116,14 +141,21 @@ parse_color:
 parse_game_id:
         mov rdx, game
         mov rcx, game_len
+        push rdi
+        push rsi
+        push rcx
         call parse_prefix
+        pop rcx
+        pop rsi
+        pop rdi
         cmp rax, 1
         je .id
         mov rax, -1
         ret
 .id:
         add rsi, rcx
-        call parse_digit
+        sub rdi, rcx
+        call parse_number
         ret
 
 
@@ -220,7 +252,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "42"
+example db "Game 42:\n"
 example_len = $ - example
 
 game db "Game "
