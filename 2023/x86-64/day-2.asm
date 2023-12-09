@@ -12,8 +12,22 @@ entry main
 main:
         mov rsi, input
         mov rdi, input_len
-        mov rdx, 4
-        call head
+        mov rdx, 5
+        ; call head
+
+        mov rsi, good_example
+        mov rdi, good_example_len
+        call color_allowed
+
+        mov rsi, rax
+        call print_register
+
+        mov rsi, bad_example
+        mov rdi, bad_example_len
+        call color_allowed
+
+        mov rsi, rax
+        call print_register
 
         exit 0
 
@@ -72,8 +86,109 @@ head:
 score_line:
         xor rax, rax
         call parse_game_id
+
+        ; TODO: analyze line
+.next:
+        cmp rdi, 0
+        je .done
+
+
+        inc rdi
+        jmp .next
+.done:
         ret
 
+
+
+
+; @param rsi - Address
+; @param rdi - Length
+; @returns 1 - allowed; 0 - not allowed
+color_allowed:
+        push rsi
+        push rdi
+        call parse_number
+        pop rdi
+        pop rsi
+        push rax
+
+        ; Move head of string
+        push rsi
+        push rdi
+        call number_length
+        pop rdi
+        pop rsi
+
+        mov r10, rax
+        add rsi, r10
+        sub rdi, r10
+
+        call color_maximum
+        mov r9, rax
+
+        pop r8
+        cmp r8, r9        ; number > max(color)
+        jg .fail
+
+        mov rax, 1
+        ret
+.fail:
+        mov rax, 0
+        ret
+
+
+; @param rsi - Address
+; @param rdi - Length
+color_maximum:
+        xor r8, r8
+        xor r9, r9
+        xor rax, rax
+
+        ; Red
+        push rsi
+        push rdi
+        mov rdx, red
+        mov rcx, red_len
+        push r9
+        call parse_prefix
+        pop r9
+        pop rdi
+        pop rsi
+        mov r8, 12
+        imul r8, rax
+        add r9, r8
+
+        ; Green
+        push rsi
+        push rdi
+        mov rdx, green
+        mov rcx, green_len
+        push r9
+        call parse_prefix
+        pop r9
+        pop rdi
+        pop rsi
+        mov r8, 13
+        imul r8, rax
+        add r9, r8
+
+        ; Blue
+        push rsi
+        push rdi
+        mov rdx, blue
+        mov rcx, blue_len
+        push r9
+        call parse_prefix
+        pop r9
+        pop rdi
+        pop rsi
+        mov r8, 14
+        imul r8, rax
+        add r9, r8
+
+        mov rax, r9
+        ret
+        
 
 ; @param rsi - Address
 ; @param rdi - Length
@@ -252,8 +367,10 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "Game 42:\n"
-example_len = $ - example
+good_example db "12 red"
+good_example_len = $ - good_example
+bad_example db "13 red"
+bad_example_len = $ - bad_example
 
 game db "Game "
 game_len = $ - game
