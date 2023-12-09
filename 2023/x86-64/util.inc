@@ -20,6 +20,40 @@ macro exit code {
 
 ; @param rsi - Address of string
 ; @param rdi - Length
+; @returns rax - Length of line including \n
+get_line:
+        xor r8, r8                ; Count
+        xor r9, r9                ; Character
+        xor r10, r10              ; Pointer
+        xor r11, r11
+
+        mov r10, rsi
+        mov r11, rdi
+.loop:
+        cmp r11, 0                ; End of string
+        je .done
+
+        mov r9b, byte [r10]       ; Read ASCII byte
+        cmp r9b, 0x0a             ; Compare \n
+        je .newline
+
+        inc r10                   ; Next byte
+        inc r8                    ; Increment count
+        dec r11                   ; Decrement length
+        jmp .loop
+
+.newline:
+        inc r8
+        mov rax, r8
+        ret
+
+.done:
+        mov rax, r8
+        ret
+
+
+; @param rsi - Address of string
+; @param rdi - Length
 line_length:
         xor r8, r8                ; Count
         xor r9, r9                ; Character

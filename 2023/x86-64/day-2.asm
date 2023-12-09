@@ -10,40 +10,44 @@ SYS_brk = 0x0c
 segment readable executable
 entry main
 main:
-        ; Read first line
         mov rsi, input
         mov rdi, input_len
-        call line_length
-        mov rdx, rax
-
-        ; print input, rdx
-
-        mov rsi, input
-        mov rdi, input_len
-        call parse_game_id
-        mov rdi, rax
-
-        mov rsi, example
-        mov rdi, example_len
-        call parse_number
-
-        ; Simple memory allocator
-        mov rsi, 1024        ; 1 kilobyte
-        call alloc
-
-        ; Use allocated memory
-        mov [rax], dword 42
-        mov [rax + 4], dword 42
-
-        mov rsi, qword [heap_start]
-        call print_register
-
-        print newline, 1
-
-        mov rsi, qword [heap_end]
-        call print_register
+        mov rdx, 5
+        call head
 
         exit 0
+
+
+head:
+        mov rsi, input
+        mov rdi, input_len
+.loop:
+        cmp rdx, 0
+        je .exit
+
+        ; Measure line
+        push rdx
+        call get_line
+        mov r9, rax
+
+        ; Print current line
+        mov r8, rsi
+        push rsi
+        push rdi
+        print r8, r9
+        pop rdi
+        pop rsi
+        pop rdx
+
+        ; Move to next line
+        add rsi, r9
+        sub rdi, r9
+
+        dec rdx        ; Decrement line counter
+        jmp .loop
+
+.exit:
+        ret
 
 
 ; @param rsi - Address
