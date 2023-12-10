@@ -1,4 +1,5 @@
 SYS_exit = 60
+SYS_brk = 0x0c
 SYS_write = 1
 STDOUT = 1
 

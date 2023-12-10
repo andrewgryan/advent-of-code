@@ -7,29 +7,44 @@ include "util.inc"
 SYS_brk = 0x0c
 
 
+; Eat one byte
+macro chomp buf, len {
+        inc        buf
+        dec        len
+}
+
+
 segment readable executable
 entry main
 main:
-        mov rsi, input
-        mov rdi, input_len
-        mov rdx, 5
-        ; call head
-
-        mov rsi, good_example
-        mov rdi, good_example_len
-        call color_allowed
-
-        mov rsi, rax
-        call print_register
-
-        mov rsi, bad_example
-        mov rdi, bad_example_len
-        call color_allowed
-
-        mov rsi, rax
-        call print_register
+        mov         rsi, example
+        mov         rdi, example_len
+        call        parse_number
+        int3
 
         exit 0
+
+
+; Parse first occurence of prefix
+;
+; @param rsi - Address of string
+; @param rdi - Length of string
+; @returns rsi, rdi - position of string
+parse_first:
+.next:
+        push    rdx
+        push    rcx
+        call    parse_prefix
+        pop     rcx
+        pop     rdx
+        cmp     rax, 1
+        je      .done
+
+        inc     rsi
+        dec     rdi
+        jmp     .next
+.done:
+        ret
 
 
 head:
@@ -274,31 +289,44 @@ parse_game_id:
         ret
 
 
+; Parse a number and move string pointer
 ; @param rsi - Address
 ; @param rdi - Length
 parse_number:
         push rsi
+        push rdi
         call number_length
+        pop rdi
+        pop rsi
         push rax
 
         ; Accumulate number
-        pop r9
-        pop r8
-        xor r10, r10
-        mov r11, 1
+        mov         r9, rax
+        mov         r8, rsi
+        xor         r10, r10
+        mov         r11, 1
+
+        ; Save str properties
+        push        rsi
+        push        rdi
 .loop:
-        cmp r9, 0
+        cmp         r9, 0
         je .done
 
-        lea rsi, [r8 + r9 - 1]   ; Address of next digit
-        call parse_digit
-        imul rax, r11        ; Multiply digit by 10**N
-        add r10, rax         ; Add to total
-        imul r11, 0x0a       ; Next power of 10
-        dec r9               ; Move pointer left
+        lea         rsi, [r8 + r9 - 1] ; Address of next digit
+        call        parse_digit
+        imul        rax, r11   ; Multiply digit by 10**N
+        add         r10, rax   ; Add to total
+        imul        r11, 0x0a  ; Next power of 10
+        dec         r9         ; Move pointer left
         jmp .loop
 .done:
-        mov rax, r10
+        pop         rdi        ; Length
+        pop         rsi        ; Str pointer
+        pop         rax        ; N digits
+        add         rsi, rax   ; Move str pointer
+        sub         rdi, rax   ; Reduce length
+        mov         rax, r10   ; Mov value to return register
         ret
 
 
@@ -367,10 +395,8 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-good_example db "12 red"
-good_example_len = $ - good_example
-bad_example db "13 red"
-bad_example_len = $ - bad_example
+example db "13 red"
+example_len = $ - example
 
 game db "Game "
 game_len = $ - game
