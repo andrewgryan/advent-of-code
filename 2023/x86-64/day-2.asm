@@ -19,12 +19,38 @@ entry main
 main:
         mov         rsi, example
         mov         rdi, example_len
-        call        parse_number
-        int3
-        call        parse_maximum
+
+        call        parse_valid
         int3
 
+        ; Handle ", "
+        add         rsi, 2
+        sub         rdi, 2
+
+        call        parse_valid
+        int3
         exit 0
+
+
+parse_valid:
+        ; Parse N color
+        call        parse_number
+        push        rax
+        call        parse_maximum
+        push        rax
+
+        ; Check valid statement
+        pop         r8
+        pop         r9
+        cmp         r9, r8
+        jg          .fail
+        jmp         .pass
+
+.fail:
+        mov         rax, 0 
+.pass:
+        mov         rax, 1
+        ret
 
 
 ; Parse first occurence of prefix
