@@ -75,6 +75,8 @@ line_length:
         ret
 
 
+; Match a prefix to a str
+;
 ; @param rsi - Address of string
 ; @param rdi - Length
 ; @param rdx - Address of pattern

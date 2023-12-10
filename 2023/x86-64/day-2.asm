@@ -19,7 +19,7 @@ entry main
 main:
         mov         rsi, example
         mov         rdi, example_len
-        call        parse_number
+        call        parse_red
         int3
 
         exit 0
@@ -237,32 +237,27 @@ parse_green:
 ; @param rdx - Keyword
 ; @param rcx - Length
 parse_color:
-        push rdi
-        push rsi
-        call parse_number
-        pop rsi
-        pop rdi
-        push rax
-        cmp rax, -1
-        je .fail
+        push    rsi
+        call    parse_number
+        pop     r8             ; Restore str pointer
+        push    rax            ; Save number
+        cmp     rsi, r8        ; Check number parsed
+        je      .fail
 
-        inc rsi
-        dec rdi
+        push    rdx
+        push    rcx
+        call    parse_prefix
+        pop     rcx
+        pop     rdx
+        cmp     rax, 0
+        je      .fail
 
-        push rdi
-        push rsi
-        call parse_prefix
-        pop rsi
-        pop rdi
-        cmp rax, 0
-        je .fail
-
-        pop rax
+        pop     rax
         ret
 
 .fail:
-        pop rax
-        mov rax, -1
+        pop     rax
+        mov     rax, -1
         ret
 
 
@@ -395,7 +390,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "13 red"
+example db "13 red, 12 blue"
 example_len = $ - example
 
 game db "Game "
