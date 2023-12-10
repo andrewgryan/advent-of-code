@@ -19,7 +19,9 @@ entry main
 main:
         mov         rsi, example
         mov         rdi, example_len
-        call        parse_red
+        call        parse_number
+        int3
+        call        parse_maximum
         int3
 
         exit 0
@@ -138,7 +140,7 @@ color_allowed:
         add rsi, r10
         sub rdi, r10
 
-        call color_maximum
+        call parse_maximum
         mov r9, rax
 
         pop r8
@@ -154,54 +156,80 @@ color_allowed:
 
 ; @param rsi - Address
 ; @param rdi - Length
-color_maximum:
-        xor r8, r8
-        xor r9, r9
-        xor rax, rax
+parse_maximum:
+        ; Reset registers
+        xor         r8, r8
+        xor         r9, r9
+        xor         r10, r10
+        xor         rax, rax
 
         ; Red
-        push rsi
-        push rdi
-        mov rdx, red
-        mov rcx, red_len
-        push r9
-        call parse_prefix
-        pop r9
-        pop rdi
-        pop rsi
-        mov r8, 12
-        imul r8, rax
-        add r9, r8
+        push        rsi
+        push        rdi
+        mov         rdx, red
+        mov         rcx, red_len
+        push        r9
+        call        parse_prefix
+        pop         r9
+        pop         rdi
+        pop         rsi
+
+        ; Compute length
+        mov         r8, red_len
+        imul        r8, rax
+        add         r10, r8
+
+        ; Compute value
+        mov         r8, 12
+        imul        r8, rax
+        add         r9, r8
 
         ; Green
-        push rsi
-        push rdi
-        mov rdx, green
-        mov rcx, green_len
-        push r9
-        call parse_prefix
-        pop r9
-        pop rdi
-        pop rsi
-        mov r8, 13
-        imul r8, rax
-        add r9, r8
+        push        rsi
+        push        rdi
+        mov         rdx, green
+        mov         rcx, green_len
+        push        r9
+        call        parse_prefix
+        pop         r9
+        pop         rdi
+        pop         rsi
+
+        ; Compute length
+        mov         r8, green_len
+        imul        r8, rax
+        add         r10, r8
+
+        ; Compute value
+        mov         r8, 13
+        imul        r8, rax
+        add         r9, r8
 
         ; Blue
-        push rsi
-        push rdi
-        mov rdx, blue
-        mov rcx, blue_len
-        push r9
-        call parse_prefix
-        pop r9
-        pop rdi
-        pop rsi
-        mov r8, 14
-        imul r8, rax
-        add r9, r8
+        push        rsi
+        push        rdi
+        mov         rdx, blue
+        mov         rcx, blue_len
+        push        r9
+        call        parse_prefix
+        pop         r9
+        pop         rdi
+        pop         rsi
 
-        mov rax, r9
+        ; Compute length
+        mov         r8, blue_len
+        imul        r8, rax
+        add         r10, r8
+
+        ; Compute value
+        mov         r8, 14
+        imul        r8, rax
+        add         r9, r8
+
+        ; Truncate str and set return
+        add         rsi, r10
+        sub         rdi, r10
+        mov         rax, r9
         ret
         
 
