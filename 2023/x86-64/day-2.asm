@@ -11,6 +11,59 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
+        ; Use reserved data to track red, green, blue minima
+        mov        [minima + 0], 0
+        mov        [minima + 1], 0
+        mov        [minima + 2], 0
+
+        ; Load puzzle input
+        mov        rsi, input
+        mov        rdi, input_len
+
+        ; Consume "Game N:" prefix
+        call       parse_game_id
+
+        ; Fast-forward to next number
+        mov         rdx, parse_is_number
+        call        parse_until
+
+        ; Parse number and color
+        call        parse_number
+        push        rax
+
+        ; Parse color index: red - 0, green - 1, blue - 2
+        call        parse_color_index
+        mov         r8, rax
+
+        ; Save maximum of color
+        xor         rsi, rsi
+        mov         sil, byte [minima + r8]
+        int3
+        pop         rdi
+        call        maximum
+        mov         [minima + r8], byte al
+        int3
+
+        exit 0
+
+
+parse_color_index:
+        mov rax, 1
+        ret
+
+
+maximum:
+        cmp        rsi, rdi
+        jg         .left
+        mov        rax, rdi
+        ret
+.left:
+        mov        rax, rsi
+        ret
+
+
+; Solution to Day 2 part 1
+part_one:
         mov         rsi, input
         mov         rdi, input_len
 
@@ -35,7 +88,6 @@ main:
 .done:
         mov         rsi, r8
         call        print_register
-        exit        0
 
 
 solution:
@@ -495,29 +547,6 @@ parse_digit:
         ret
 
 
-; Allocator
-; @param rsi - size in bytes
-; @returns rax - address of memory block
-alloc:
-        ; Get breakpoint address
-        mov rax, SYS_brk
-        mov rdi, 0
-        syscall
-
-        mov [heap_start], qword rax
-
-        ; TODO: implement an allocation algorithm
-
-        ; Increase breakpoint address
-        lea rdi, [rax + rsi]
-        mov rax, SYS_brk
-        syscall
-
-        mov [heap_end], qword rax
-
-        ret
-
-
 segment readable writable
 input file "input-2"
 input_len = $ - input
@@ -525,6 +554,10 @@ input_len = $ - input
 example db "Game 64: 12 red, 14 blue, 13 green; 5 red"
 example_len = $ - example
 
+; Minimum colors
+minima rb 3        ; Reserve 4 bytes
+
+; Helpful prefixes
 game db "Game "
 game_len = $ - game
 red db " red"
@@ -533,7 +566,3 @@ blue db " blue"
 blue_len = $ - blue
 green db " green"
 green_len = $ - green
-
-; Allocator private data
-heap_start dq 0
-heap_end dq 0
