@@ -5,16 +5,37 @@ include "util.inc"
 
 
 SYS_brk = 0x0c
+NEWLINE = 0x0a
 
 
 segment readable executable
 entry main
 main:
-        mov         rsi, example
-        mov         rdi, example_len
+        mov         rsi, input
+        mov         rdi, input_len
+
+        xor         r8, r8
+        mov         r9, 100        ; Line count
+.line:
+        cmp         r9, 0
+        je          .done
+        
+        ; solve line
+        push        r8
+        push        r9
         call        solution
-        int3
-        exit 0
+        pop         r9
+        pop         r8
+
+        ; sum value
+        add         r8, rax
+        dec         r9
+        jmp         .line
+
+.done:
+        mov         rsi, r8
+        call        print_register
+        exit        0
 
 
 solution:
@@ -22,8 +43,14 @@ solution:
         push        rax
         mov         r8, 1              ; Set r8 to True
 .next_draw:
+        ; Break if end-of-file
         cmp         rdi, 0
         je          .done
+
+        ; Break if end-of-line
+        mov         r10b, [rsi]
+        cmp         r10b, NEWLINE
+        je          .newline
 
         ; Preserve r8 register
         push        r8
@@ -39,6 +66,11 @@ solution:
         pop         r8
         imul        r8, rax            ; Multiply by 1 or 0
         jmp         .next_draw
+
+.newline:
+        inc         rsi
+        dec         rdi
+
 .done:
         pop         rax                ; Game ID
         imul        rax, r8            ; Flag * ID
@@ -501,8 +533,6 @@ blue db " blue"
 blue_len = $ - blue
 green db " green"
 green_len = $ - green
-
-newline db 0x0a
 
 ; Allocator private data
 heap_start dq 0
