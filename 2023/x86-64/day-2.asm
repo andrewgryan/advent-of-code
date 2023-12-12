@@ -7,27 +7,14 @@ include "util.inc"
 SYS_brk = 0x0c
 
 
-; Eat one byte
-macro chomp buf, len {
-        inc        buf
-        dec        len
-}
-
-
 segment readable executable
 entry main
 main:
         mov         rsi, example
         mov         rdi, example_len
-
-        call        parse_valid
+        mov         rdx, parse_is_number
         int3
-
-        ; Handle ", "
-        add         rsi, 2
-        sub         rdi, 2
-
-        call        parse_valid
+        call        parse_until
         int3
         exit 0
 
@@ -53,21 +40,50 @@ parse_valid:
         ret
 
 
-; Parse first occurence of prefix
+; Always returns true
+always:
+        mov         rax, 1
+        ret
+
+
+; Detect number in string
+;
+; @returns 1 - succeed and 0 - fail
+parse_is_number:
+        push        rdi               ; Store rdi on stack
+        call        parse_number
+        pop         r9                ; Restore rdi
+        cmp         rdi, r9
+        je          .fail
+        jmp         .success
+.fail:
+        mov rax, 0
+        ret
+.success:
+        mov rax, 1
+        ret
+
+
+; Move to first successful parse
 ;
 ; @param rsi - Address of string
 ; @param rdi - Length of string
+; @param rdx - Parser
 ; @returns rsi, rdi - position of string
-parse_first:
+parse_until:
 .next:
-        push    rdx
-        push    rcx
-        call    parse_prefix
-        pop     rcx
-        pop     rdx
+        ; Break if string empty
+        cmp rdi, 0
+        je .done
+
+        ; Save sub-parser address
+        push rdx
+        call    rdx
+        pop rdx
         cmp     rax, 1
         je      .done
 
+        ; If no match move to the next character
         inc     rsi
         dec     rdi
         jmp     .next
@@ -444,7 +460,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "13 red, 12 blue"
+example db "Foo, 123, Bar"
 example_len = $ - example
 
 game db "Game "
