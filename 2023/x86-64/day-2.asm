@@ -19,13 +19,29 @@ main:
 
 solution:
         call        parse_game_id
-        int3
+        push        rax
+        mov         r8, 1              ; Set r8 to True
+.next_draw:
+        cmp         rdi, 0
+        je          .done
 
+        ; Preserve r8 register
+        push        r8
+
+        ; Fast-forward to next number
         mov         rdx, parse_is_number
         call        parse_until
-        int3
 
+        ; Determine if draw is valid
         call        parse_valid
+
+        ; Combine draw results
+        pop         r8
+        imul        r8, rax            ; Multiply by 1 or 0
+        jmp         .next_draw
+.done:
+        pop         rax                ; Game ID
+        imul        rax, r8            ; Flag * ID
         ret
 
 
@@ -470,7 +486,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "Game 42: 1 red, 1 blue, 1 green;"
+example db "Game 42: 1 red, 1 blue, 1 green"
 example_len = $ - example
 
 game db "Game "
