@@ -30,9 +30,7 @@ solution:
 
         ; Fast-forward to next number
         mov         rdx, parse_is_number
-        int3
         call        parse_until
-        int3
 
         ; Determine if draw is valid
         call        parse_valid
@@ -492,12 +490,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-valid db "12 red"
-valid_len = $ - valid
-invalid db "13 red"
-invalid_len = $ - invalid
-
-example db "Game 64: 13 red, 1 blue, 1 green"
+example db "Game 64: 12 red, 14 blue, 13 green; 5 red"
 example_len = $ - example
 
 game db "Game "
