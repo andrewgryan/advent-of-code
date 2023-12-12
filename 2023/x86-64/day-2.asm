@@ -12,11 +12,21 @@ entry main
 main:
         mov         rsi, example
         mov         rdi, example_len
-        mov         rdx, parse_is_number
-        int3
-        call        parse_until
+        call        solution
         int3
         exit 0
+
+
+solution:
+        call        parse_game_id
+        int3
+
+        mov         rdx, parse_is_number
+        call        parse_until
+        int3
+
+        call        parse_valid
+        ret
 
 
 parse_valid:
@@ -460,7 +470,7 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "Foo, 123, Bar"
+example db "Game 42: 1 red, 1 blue, 1 green;"
 example_len = $ - example
 
 game db "Game "
