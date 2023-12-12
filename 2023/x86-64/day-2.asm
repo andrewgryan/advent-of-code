@@ -30,7 +30,9 @@ solution:
 
         ; Fast-forward to next number
         mov         rdx, parse_is_number
+        int3
         call        parse_until
+        int3
 
         ; Determine if draw is valid
         call        parse_valid
@@ -61,6 +63,7 @@ parse_valid:
 
 .fail:
         mov         rax, 0 
+        ret
 .pass:
         mov         rax, 1
         ret
@@ -76,10 +79,13 @@ always:
 ;
 ; @returns 1 - succeed and 0 - fail
 parse_is_number:
-        push        rdi               ; Store rdi on stack
+        push        rsi               ; Save address
+        push        rdi               ; Save length
         call        parse_number
-        pop         r9                ; Restore rdi
-        cmp         rdi, r9
+        mov         r9, rdi           ; Parsed length
+        pop         rdi               ; Restore length
+        pop         rsi               ; Restore address
+        cmp         rdi, r9           ; Fail if no change
         je          .fail
         jmp         .success
 .fail:
@@ -486,7 +492,12 @@ segment readable writable
 input file "input-2"
 input_len = $ - input
 
-example db "Game 42: 1 red, 1 blue, 1 green"
+valid db "12 red"
+valid_len = $ - valid
+invalid db "13 red"
+invalid_len = $ - invalid
+
+example db "Game 64: 13 red, 1 blue, 1 green"
 example_len = $ - example
 
 game db "Game "
