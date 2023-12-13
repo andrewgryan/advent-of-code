@@ -2,6 +2,7 @@ format ELF64 executable
 
 
 include "util.inc"
+include "parsers.asm"
 
 
 NEWLINE = 0x0a

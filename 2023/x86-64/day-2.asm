@@ -2,6 +2,7 @@ format ELF64 executable
 
 
 include "util.inc"
+include "parsers.asm"
 
 
 SYS_brk = 0x0c
@@ -303,33 +304,6 @@ parse_is_number:
         ret
 
 
-; Move to first successful parse
-;
-; @param rsi - Address of string
-; @param rdi - Length of string
-; @param rdx - Parser
-; @returns rsi, rdi - position of string
-parse_until:
-.next:
-        ; Break if string empty
-        cmp rdi, 0
-        je .done
-
-        ; Save sub-parser address
-        push rdx
-        call    rdx
-        pop rdx
-        cmp     rax, 1
-        je      .done
-
-        ; If no match move to the next character
-        inc     rsi
-        dec     rdi
-        jmp     .next
-.done:
-        ret
-
-
 head:
         mov rsi, input
         mov rdi, input_len
@@ -561,85 +535,6 @@ parse_game_id:
         add rsi, rcx
         sub rdi, rcx
         call parse_number
-        ret
-
-
-; Parse a number and move string pointer
-; @param rsi - Address
-; @param rdi - Length
-parse_number:
-        push rsi
-        push rdi
-        call number_length
-        pop rdi
-        pop rsi
-        push rax
-
-        ; Accumulate number
-        mov         r9, rax
-        mov         r8, rsi
-        xor         r10, r10
-        mov         r11, 1
-
-        ; Save str properties
-        push        rsi
-        push        rdi
-.loop:
-        cmp         r9, 0
-        je .done
-
-        lea         rsi, [r8 + r9 - 1] ; Address of next digit
-        call        parse_digit
-        imul        rax, r11   ; Multiply digit by 10**N
-        add         r10, rax   ; Add to total
-        imul        r11, 0x0a  ; Next power of 10
-        dec         r9         ; Move pointer left
-        jmp .loop
-.done:
-        pop         rdi        ; Length
-        pop         rsi        ; Str pointer
-        pop         rax        ; N digits
-        add         rsi, rax   ; Move str pointer
-        sub         rdi, rax   ; Reduce length
-        mov         rax, r10   ; Mov value to return register
-        ret
-
-
-number_length:
-        xor r8, r8
-.next:
-        cmp rdi, 0
-        je .done
-
-        call parse_digit
-        cmp rax, -1
-        je .done
-
-        inc r8         ; Digit counter
-        inc rsi        ; String
-        dec rdi        ; Length
-        jmp .next
-.done:
-        mov rax, r8
-        ret
-
-
-
-; @param rsi - Address
-parse_digit:
-        mov al, byte [rsi]
-
-        cmp al, 48
-        jl .fail
-
-        cmp al, 57
-        jg .fail
-
-        sub al, 48
-        ret
-
-.fail:
-        mov rax, -1
         ret
 
 
