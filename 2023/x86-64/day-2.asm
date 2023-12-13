@@ -11,17 +11,32 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
+        ; Load puzzle input
+        mov        rsi, input
+        mov        rdi, input_len
+        call       solution_2
+        exit 0
+
+
+solution_2:
         ; Use reserved data to track red, green, blue minima
         mov        [minima + 0], 0
         mov        [minima + 1], 0
         mov        [minima + 2], 0
 
-        ; Load puzzle input
-        mov        rsi, input
-        mov        rdi, input_len
-
         ; Consume "Game N:" prefix
         call       parse_game_id
+
+.next_draw:
+        int3
+        ; Break if end-of-file
+        cmp         rdi, 0
+        je          .done
+
+        ; Break if end-of-line
+        mov         r10b, [rsi]
+        cmp         r10b, NEWLINE
+        je          .newline
 
         ; Fast-forward to next number
         mov         rdx, parse_is_number
@@ -36,22 +51,114 @@ main:
         mov         r8, rax
 
         ; Save maximum of color
-        xor         rsi, rsi
-        mov         sil, byte [minima + r8]
-        int3
-        pop         rdi
+        pop         r9                ; number
+        push        rsi               ; save address
+        push        rdi               ; save length
+        movzx       rsi, byte [minima + r8]
+        mov         rdi, r9
         call        maximum
         mov         [minima + r8], byte al
-        int3
+        pop         rdi               ; restore length
+        pop         rsi               ; restore address
 
-        exit 0
+        jmp         .next_draw
 
+.newline:
+        inc         rsi
+        dec         rdi
 
-parse_color_index:
-        mov rax, 1
+.done:
+        ; Multiply each minimum color together
+        xor         r8, r8
+        mov         rax, 1
+        movzx       r8, byte [minima + 0]
+        imul        rax, r8
+        movzx       r8, byte [minima + 1]
+        imul        rax, r8
+        movzx       r8, byte [minima + 2]
+        imul        rax, r8
         ret
 
 
+
+parse_color_index:
+        ; Reset registers
+        xor         r8, r8
+        xor         r9, r9
+        xor         r10, r10
+        xor         rax, rax
+
+        ; Red
+        push        rsi
+        push        rdi
+        mov         rdx, red
+        mov         rcx, red_len
+        push        r9
+        call        parse_prefix
+        pop         r9
+        pop         rdi
+        pop         rsi
+
+        ; Compute length
+        mov         r8, red_len
+        imul        r8, rax
+        add         r10, r8
+
+        ; Compute value
+        mov         r8, 0
+        imul        r8, rax
+        add         r9, r8
+
+        ; Green
+        push        rsi
+        push        rdi
+        mov         rdx, green
+        mov         rcx, green_len
+        push        r9
+        call        parse_prefix
+        pop         r9
+        pop         rdi
+        pop         rsi
+
+        ; Compute length
+        mov         r8, green_len
+        imul        r8, rax
+        add         r10, r8
+
+        ; Compute value
+        mov         r8, 1
+        imul        r8, rax
+        add         r9, r8
+
+        ; Blue
+        push        rsi
+        push        rdi
+        mov         rdx, blue
+        mov         rcx, blue_len
+        push        r9
+        call        parse_prefix
+        pop         r9
+        pop         rdi
+        pop         rsi
+
+        ; Compute length
+        mov         r8, blue_len
+        imul        r8, rax
+        add         r10, r8
+
+        ; Compute value
+        mov         r8, 2
+        imul        r8, rax
+        add         r9, r8
+
+        ; Truncate str and set return
+        add         rsi, r10
+        sub         rdi, r10
+        mov         rax, r9
+        ret
+
+
+; max(rsi, rdi) -> rax
 maximum:
         cmp        rsi, rdi
         jg         .left
@@ -394,7 +501,7 @@ parse_maximum:
 parse_blue:
         mov rdx, blue
         mov rcx, blue_len
-        call parse_color
+        call parse_prefix
         ret
 
 
@@ -403,7 +510,7 @@ parse_blue:
 parse_red:
         mov rdx, red
         mov rcx, red_len
-        call parse_color
+        call parse_prefix
         ret
 
 
@@ -412,36 +519,7 @@ parse_red:
 parse_green:
         mov rdx, green
         mov rcx, green_len
-        call parse_color
-        ret
-
-
-; @param rsi - Address
-; @param rdi - Length
-; @param rdx - Keyword
-; @param rcx - Length
-parse_color:
-        push    rsi
-        call    parse_number
-        pop     r8             ; Restore str pointer
-        push    rax            ; Save number
-        cmp     rsi, r8        ; Check number parsed
-        je      .fail
-
-        push    rdx
-        push    rcx
-        call    parse_prefix
-        pop     rcx
-        pop     rdx
-        cmp     rax, 0
-        je      .fail
-
-        pop     rax
-        ret
-
-.fail:
-        pop     rax
-        mov     rax, -1
+        call parse_prefix
         ret
 
 
