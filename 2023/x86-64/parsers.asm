@@ -11,6 +11,14 @@
 
 ; Move to first successful parse
 ;
+; A successful parse is determined based on
+; a change in the length of the input string
+; before/after a parse
+;
+; @example
+;        mov        rdx, parse_digit
+;        call       parse_until
+;
 ; @param rsi - Address of string
 ; @param rdi - Length of string
 ; @param rdx - Parser
@@ -18,20 +26,25 @@
 parse_until:
 .next:
         ; Break if string empty
-        cmp rdi, 0
-        je .done
+        cmp          rdi, 0
+        je           .done
 
-        ; Save sub-parser address
-        push rdx
-        call    rdx
-        pop rdx
-        cmp     rax, 1
-        je      .done
+        ; Call sub-parser
+        push         rdi
+        push         rdx
+        call         rdx
 
-        ; If no match move to the next character
-        inc     rsi
-        dec     rdi
-        jmp     .next
+        ; Compare return string length
+        mov          r8, rdi
+        pop          rdx
+        pop          rdi
+        cmp          r8, rdi
+        jne          .done
+
+        ; No match, try next character
+        inc          rsi
+        dec          rdi
+        jmp          .next
 .done:
         ret
 

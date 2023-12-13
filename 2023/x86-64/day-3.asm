@@ -18,10 +18,14 @@ main:
 
         ; Get grid width
         call grid_width
-        int3
 
         ; Get grid height
         call grid_height
+
+        ; Parse until first digit
+        int3
+        mov        rdx, parse_digit
+        call       parse_until
         int3
 
         exit        0
