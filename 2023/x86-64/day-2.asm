@@ -14,8 +14,27 @@ main:
         ; Load puzzle input
         mov        rsi, input
         mov        rdi, input_len
-        call       solution_2
-        exit 0
+        xor         r8, r8
+        mov         r9, 100        ; Line count
+.line:
+        cmp         r9, 0
+        je          .done
+        
+        ; solve line
+        push        r8
+        push        r9
+        call        solution_2
+        pop         r9
+        pop         r8
+
+        ; sum value
+        add         r8, rax
+        dec         r9
+        jmp         .line
+
+.done:
+        mov         rsi, r8
+        call        print_register
 
 
 solution_2:
@@ -28,7 +47,6 @@ solution_2:
         call       parse_game_id
 
 .next_draw:
-        int3
         ; Break if end-of-file
         cmp         rdi, 0
         je          .done
