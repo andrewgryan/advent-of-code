@@ -12,22 +12,48 @@ segment readable executable
 entry main
 main:
         ; Load puzzle input
-        mov         rsi, sample
-        mov         rdi, sample_len
+        mov         rsi, input
+        mov         rdi, input_len
 
-        ; Parse until first digit
-        mov        rdx, parse_digit
-        call       parse_until
-        call       parse_number
+        call        grid_width
+        push        rax
         int3
 
-        ; Parse until second digit
-        mov        rdx, parse_digit
-        call       parse_until
-        call       parse_number
+        call        grid_height
+        push        rax
         int3
 
+        xor        r8, r8
+.next:
+        ;          Empty string
+        cmp        rdi, 0
+        je         .done
+
+        ;          Parse until digit
+        push       r8
+        mov        rdx, parse_digit
+        call       parse_until
+        pop        r8
+
+        ;          Empty string
+        cmp        rdi, 0
+        je         .done
+
+        push       r8
+        call       parse_number
+        pop        r8
+        add        r8, rax
+
+        jmp        .next
+
+.done:
+        int3
         exit        0
+
+
+search_perimeter:
+        mov        rax, 1
+        ret
 
 
 grid_width:
