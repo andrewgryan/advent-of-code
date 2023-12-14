@@ -18,8 +18,15 @@ main:
         ; Parse until first digit
         mov        rdx, parse_digit
         call       parse_until
-        call       parse_number_length
+        call       parse_number
         int3
+
+        ; Parse until second digit
+        mov        rdx, parse_digit
+        call       parse_until
+        call       parse_number
+        int3
+
         exit        0
 
 
@@ -94,5 +101,5 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db ".....123abcdefghijklmnop"
+sample db ".....123.....456.....Hello, World!"
 sample_len = $ - sample
