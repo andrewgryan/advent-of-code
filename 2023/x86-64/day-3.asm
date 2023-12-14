@@ -12,18 +12,11 @@ segment readable executable
 entry main
 main:
         ; Load puzzle input
-        mov         rsi, input
-        mov         rdi, input_len
+        mov         rsi, sample
+        mov         rdi, sample_len
+
         int3
-
-        ; Get grid width
-        call grid_width
-
-        ; Get grid height
-        call grid_height
-
         ; Parse until first digit
-        int3
         mov        rdx, parse_digit
         call       parse_until
         int3
@@ -101,3 +94,6 @@ grid_height:
 segment readable writable
 input file "input-3"
 input_len = $ - input
+
+sample db "...1..."
+sample_len = $ - sample

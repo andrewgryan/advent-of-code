@@ -25,19 +25,23 @@
 ; @returns rsi, rdi - position of string
 parse_until:
 .next:
-        ; Break if string empty
+        ;            Empty string
         cmp          rdi, 0
         je           .done
 
-        ; Call sub-parser
+        ;            Save string position
+        push         rsi
         push         rdi
+
+        ;            Sub-parser
         push         rdx
         call         rdx
+        pop          rdx
 
         ; Compare return string length
         mov          r8, rdi
-        pop          rdx
         pop          rdi
+        pop          rsi
         cmp          r8, rdi
         jne          .done
 
@@ -117,19 +121,30 @@ number_length:
 ; Parse an ASCII character [0-9]
 ;
 ; @param rsi - Address
+; @param rdi - Length
 ; @returns number
 parse_digit:
-        mov al, byte [rsi]
+        ;          Empty string
+        cmp        rdi, 0
+        je         .fail
 
-        cmp al, 48
-        jl .fail
+        ;          Read byte into rax
+        mov        al, byte [rsi]
 
-        cmp al, 57
-        jg .fail
+        ;          Below '0' code
+        cmp        al, 48
+        jl         .fail
 
-        sub al, 48
+        ;          Above '9' code
+        cmp        al, 57
+        jg         .fail
+
+        ;          Subtract 48 and move pointer
+        sub        al, 48
+        inc        rsi
+        dec        rdi
         ret
 
 .fail:
-        mov rax, -1
+        mov rax, 0
         ret
