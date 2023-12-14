@@ -15,12 +15,11 @@ main:
         mov         rsi, sample
         mov         rdi, sample_len
 
-        int3
         ; Parse until first digit
         mov        rdx, parse_digit
         call       parse_until
+        call       parse_number_length
         int3
-
         exit        0
 
 
@@ -95,5 +94,5 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "...1..."
+sample db ".....123abcdefghijklmnop"
 sample_len = $ - sample

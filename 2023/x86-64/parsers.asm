@@ -60,7 +60,7 @@ parse_until:
 parse_number:
         push rsi
         push rdi
-        call number_length
+        call parse_number_length
         pop rdi
         pop rsi
         push rax
@@ -99,22 +99,35 @@ parse_number:
 ;
 ; @param rsi - Address of string
 ; @param rdi - Length of string
-number_length:
-        xor r8, r8
+parse_number_length:
+        xor         r8, r8
+        xor         r9, r9
 .next:
-        cmp rdi, 0
-        je .done
+        ;           Empty string
+        cmp         rdi, 0
+        je          .done
 
-        call parse_digit
-        cmp rax, -1
-        je .done
+        ;           Detect successful parse
+        push        rdi
+        push        rsi
+        call        parse_digit
+        mov         r9, rdi
+        pop         rsi
+        pop         rdi
+        cmp         r9, rdi
+        je          .done
 
-        inc r8         ; Digit counter
-        inc rsi        ; String
-        dec rdi        ; Length
-        jmp .next
+        ;           Move head of string
+        inc         r8         ; Digit counter
+        inc         rsi        ; String
+        dec         rdi        ; Length
+
+        jmp         .next
 .done:
-        mov rax, r8
+        ;           Reset string
+        mov         rax, r8
+        sub         rsi, r8
+        add         rdi, r8
         ret
 
 
