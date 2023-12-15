@@ -11,17 +11,38 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
+        xor         rsi, rsi
+        mov         sil, '.'
+        call        is_dot
+
+        mov         sil, '*'
+        call        is_dot
+
+        exit        0
+
+
+; @param rsi - byte
+is_dot:
+        cmp        sil, '.'
+        jne        .fail
+        mov        rax, 1
+        ret
+.fail:
+        mov        rax, 0
+        ret
+
+
+; SOLUTION
+solution:
         ; Load puzzle input
         mov         rsi, input
         mov         rdi, input_len
 
         call        grid_width
         push        rax
-        int3
 
         call        grid_height
         push        rax
-        int3
 
         xor        r8, r8
 .next:
@@ -47,8 +68,7 @@ main:
         jmp        .next
 
 .done:
-        int3
-        exit        0
+        ret
 
 
 search_perimeter:
