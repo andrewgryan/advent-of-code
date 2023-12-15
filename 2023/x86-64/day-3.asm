@@ -13,12 +13,26 @@ entry main
 main:
         xor         rsi, rsi
         mov         sil, '.'
-        call        is_dot
+        call        is_digit
+        int3
 
-        mov         sil, '*'
-        call        is_dot
+        mov         sil, '5'
+        call        is_digit
+        int3
 
         exit        0
+
+
+; @param rsi - byte
+is_digit:
+        sub        sil, '0'
+        cmp        sil, 9
+        ja         .fail
+        mov        rax, 1
+        ret
+.fail:
+        mov        rax, 0
+        ret
 
 
 ; @param rsi - byte
