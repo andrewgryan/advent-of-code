@@ -11,16 +11,44 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
+        ;           Unit tests
         xor         rsi, rsi
         mov         sil, '.'
-        call        is_digit
+        call        is_symbol
         int3
 
-        mov         sil, '5'
-        call        is_digit
+        xor         rsi, rsi
+        mov         sil, '*'
+        call        is_symbol
+        int3
+
+        xor         rsi, rsi
+        mov         sil, '8'
+        call        is_symbol
         int3
 
         exit        0
+
+
+; @param rsi - byte
+is_symbol:
+        call        is_digit
+        push        rax
+
+        call        is_dot
+        push        rax
+
+        ;           Compare digit(c) and dot(c)
+        pop         r8
+        pop         r9
+        add         r8, r9
+        cmp         r8, 0
+        je         .succeed
+        mov        rax, 0
+        ret
+.succeed:
+        mov        rax, 1
+        ret
 
 
 ; @param rsi - byte
@@ -28,9 +56,11 @@ is_digit:
         sub        sil, '0'
         cmp        sil, 9
         ja         .fail
+        add        sil, '0'
         mov        rax, 1
         ret
 .fail:
+        add        sil, '0'
         mov        rax, 0
         ret
 
