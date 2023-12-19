@@ -11,22 +11,41 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        ;           Unit tests
-        xor         rsi, rsi
-        mov         sil, '.'
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 16
+
+        ;           Load test data
+        mov         rsi, sample
+        mov         rdi, sample_len
+
+        ;           Estimate grid width
+        call        grid_width
+        mov         [rsp], byte al
+
+        ;           Parse until digit
+        mov         rsi, sample
+        mov         rdi, sample_len
+        call        parse_until_digit
+
+        mov         [rsp + 8], qword rsi    ; Store str pointer on stack
+        xor         rsi, rsi                ; Clear str pointer register
+
+        ;           Byte before number
+        mov         r8, qword [rsp + 8]
+        dec         r8
+        mov         sil, byte [r8]
         call        is_symbol
         int3
 
-        xor         rsi, rsi
-        mov         sil, '*'
+        ;           Byte after number
+        lea         r8, [rsp + 8]
+        mov         sil, byte [r8 + 1]
         call        is_symbol
         int3
 
-        xor         rsi, rsi
-        mov         sil, '8'
-        call        is_symbol
-        int3
 
+        pop         rbp
         exit        0
 
 
@@ -43,11 +62,11 @@ is_symbol:
         pop         r9
         add         r8, r9
         cmp         r8, 0
-        je         .succeed
-        mov        rax, 0
+        je          .succeed
+        mov         rax, 0
         ret
 .succeed:
-        mov        rax, 1
+        mov         rax, 1
         ret
 
 
@@ -112,6 +131,12 @@ solution:
         jmp        .next
 
 .done:
+        ret
+
+
+parse_until_digit:
+        mov        rdx, parse_digit
+        call       parse_until
         ret
 
 
@@ -191,5 +216,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db ".....123.....456.....Hello, World!"
+sample db ".1#", NEWLINE, \
+          "...", NEWLINE, \
+          "...", NEWLINE
 sample_len = $ - sample
