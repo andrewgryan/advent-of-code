@@ -11,9 +11,10 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
+        ;           Save stack pointer(s)
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 16
+        sub         rsp, 16        ; Allocate bytes
 
         ;           Load test data
         mov         rsi, sample
@@ -33,19 +34,37 @@ main:
 
         ;           Byte before number
         mov         r8, qword [rsp + 8]
-        dec         r8
-        mov         sil, byte [r8]
+        mov         sil, byte [r8 - 1]
         call        is_symbol
-        int3
 
         ;           Byte after number
-        lea         r8, [rsp + 8]
+        mov         r8, qword [rsp + 8]
         mov         sil, byte [r8 + 1]
         call        is_symbol
+
+        ;           Byte below number
+        mov         r10, 3                 ; Halo width
+        movzx       r9d, byte [rsp]        ; Grid width
+        mov         r8, qword [rsp + 8]    ; Number address
+        dec         r8
+        add         r8, r9                 ; Lower-left corner
+.next:
+        ;           Loop body
         int3
+        movzx       esi, byte [r8 + rcx]
+        push        r8
+        call        is_symbol
+        pop         r8
+
+        ;           Loop logic
+        inc         rcx
+        cmp         rcx, r10               ; Check halo width
+        je          .cont
+        jmp         .next
+.cont:
 
 
-        pop         rbp
+        pop         rbp        ; Restore base pointer
         exit        0
 
 
@@ -216,7 +235,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db ".1#", NEWLINE, \
+sample db "%1.", NEWLINE, \
           "...", NEWLINE, \
           "...", NEWLINE
 sample_len = $ - sample
