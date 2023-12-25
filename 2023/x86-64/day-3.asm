@@ -16,12 +16,25 @@ main:
         ; 3. Sum numbers which pass test
         mov         rsi, input
         mov         rdi, input_len
+
+        ;           Grid width
+        call        grid_width
+        mov         r12, rax        ; NOTE: r12 not used anywhere
+
+        ;           Algorithm
         xor         r8, r8
 .l1:
         push        r8
         call        parse_until_digit
 
+        push        rsi
+        push        rdi
+        mov         rcx, r12        ; Grid width
+        mov         rdx, input      ; Original string
         call        is_valid
+        pop         rdi
+        pop         rsi
+        int3
         push        rax
 
         call        parse_number
@@ -79,13 +92,13 @@ is_valid:
         ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
         call        is_symbol                 ; Check symbol
-.skip_1:
 
         ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
+.skip_1:
 
         ;           Character before
         mov         rsi, [rsp + 0 * 8]        ; Address
@@ -99,13 +112,13 @@ is_valid:
         ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
         call        is_symbol                 ; Check symbol
-.skip_2:
 
         ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
+.skip_2:
 
         ;           Loop counter
         mov         rcx, [rsp + 4 * 8]        ; Number width
@@ -119,7 +132,7 @@ is_valid:
 
         ;           Check character
         lea         r8, [rsi + rcx]           ; Address of byte
-        mov         r9, [rsi + 6 * 8]         ; End of string
+        mov         r9, [rsp + 6 * 8]         ; End of string
         cmp         r8, r9                    ; Address > End
         ja          .skip_3
 
@@ -150,7 +163,7 @@ is_valid:
 
         ;           Check character
         lea         r8, [rsi + rcx]           ; Address of byte
-        mov         r9, [rsi + 6 * 8]         ; End of string
+        mov         r9, [rsp + 6 * 8]         ; End of string
         cmp         r8, r9                    ; Address > End
         jb          .skip_4
 
