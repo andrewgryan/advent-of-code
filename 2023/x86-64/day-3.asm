@@ -20,14 +20,32 @@ main:
 .l1:
         push        r8
         call        parse_until_digit
+
+        call        is_valid
+        push        rax
+
         call        parse_number
+        pop         r9
         pop         r8
-        add         r8, rax
+        imul        r9, rax
+        add         r8, r9
         cmp         rdi, 0
         ja          .l1
         int3
 
         exit        0
+
+
+; Detect a valid digit by examining it's surrounding chars
+;
+; @param rsi: remaining str address
+; @param rdi: remaining str length
+; @param rcx: grid width
+; @param rdx: origin str address
+; @returns rax: bool indicating validity
+is_valid:
+        mov        rax, 1
+        ret
 
 
 _main:
