@@ -11,23 +11,20 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        xor        r10, r10
-        mov        r8, 0        ; i = 0
+        ; 1. Loop over numbers in string
+        ; 2. Test each number for nearby symbols
+        ; 3. Sum numbers which pass test
+        mov         rsi, input
+        mov         rdi, input_len
+        xor         r8, r8
 .l1:
-        mov        r9, 0        ; j = 0
-.l2:
-        ;          i + j
-        inc        r10
-
-        ;          j++
-        inc        r9
-        cmp        r9, 10
-        jb         .l2
-
-        ;          i++
-        inc        r8
-        cmp        r8, 5
-        jb         .l1
+        push        r8
+        call        parse_until_digit
+        call        parse_number
+        pop         r8
+        add         r8, rax
+        cmp         rdi, 0
+        ja          .l1
         int3
 
         exit        0
