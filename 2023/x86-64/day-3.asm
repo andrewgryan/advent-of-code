@@ -14,8 +14,8 @@ main:
         ; 1. Loop over numbers in string
         ; 2. Test each number for nearby symbols
         ; 3. Sum numbers which pass test
-        mov         rsi, input
-        mov         rdi, input_len
+        mov         rsi, sample
+        mov         rdi, sample_len
 
         ;           Grid width
         call        grid_width
@@ -30,11 +30,10 @@ main:
         push        rsi
         push        rdi
         mov         rcx, r12        ; Grid width
-        mov         rdx, input      ; Original string
+        mov         rdx, sample      ; Original string
         call        is_valid
         pop         rdi
         pop         rsi
-        int3
         push        rax
 
         call        parse_number
@@ -82,7 +81,6 @@ is_valid:
         mov         rsi, [rsp + 0 * 8]        ; Address
         mov         rdi, [rsp + 4 * 8]        ; Number width
         add         rsi, rdi                  ; End of number
-        inc         rsi                       ; Plus one
 
         ;           Bounds-check
         mov         rdx, [rsp + 3 * 8]        ; Global address
@@ -93,10 +91,10 @@ is_valid:
         mov         sil, byte [rsi]           ; Load byte
         call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_1:
 
@@ -113,10 +111,10 @@ is_valid:
         mov         sil, byte [rsi]           ; Load byte
         call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_2:
 
@@ -140,11 +138,12 @@ is_valid:
         mov         sil, byte [r8]            ; Load byte
         call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
+
 .skip_3:
         ;           Loop condition
         dec         rcx                       ; Reduce rcx
@@ -171,10 +170,10 @@ is_valid:
         mov         sil, byte [r8]            ; Load byte
         call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
 .skip_4:
@@ -361,6 +360,6 @@ input file "input-3"
 input_len = $ - input
 
 sample db "...", NEWLINE, \
-          ".9.", NEWLINE, \
+          ".9#", NEWLINE, \
           "...", NEWLINE
 sample_len = $ - sample
