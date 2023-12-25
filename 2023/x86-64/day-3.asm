@@ -44,68 +44,67 @@ main:
 ; @param rdx: origin str address
 ; @returns rax: bool indicating validity
 is_valid:
-        mov        rax, 1
-        ret
-
-
-_main:
-        ;           Save stack pointer(s)
+        ;           Allocate stack
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 16        ; Allocate bytes
+        sub         rsp, 16
 
-        ;           Load test data
-        mov         rsi, sample
-        mov         rdi, sample_len
+        ;           Flag
+        mov         [rsp + 8], dword 0
 
-        ;           Estimate grid width
-        call        grid_width
-        mov         [rsp], byte al
+        ;           Save number length on stack
+        call        parse_number_length
+        mov         [rsp], rax
 
-        ;           Parse until digit
-        mov         rsi, sample
-        mov         rdi, sample_len
-        call        parse_until_digit
-
-        mov         [rsp + 8], qword rsi    ; Store str pointer on stack
-        xor         rsi, rsi                ; Clear str pointer register
-
-        ;           Byte before number
-        mov         r8, qword [rsp + 8]
-        mov         sil, byte [r8 - 1]
+        ;           Character after
+        push        rsi
+        mov         r8, [rsp]                 ; load len(s)
+        xor         rsi, rsi
+        mov         sil, byte [rsi + r8 + 1]  ; *str + len(s) + 1
         call        is_symbol
+        pop         rsi
 
-        ;           Byte after number
-        mov         r8, qword [rsp + 8]
-        mov         sil, byte [r8 + 1]
+        ;           Accumulate flag
+        xor         r8, r8
+        mov         r8b, byte [rsp + 8]
+        and         r8b, al
+        mov         [rsp + 8], byte al
+
+        ;           Character before
+        push        rsi
+        dec         rsi
+        mov         sil, byte [rsi]           ; *str - 1
         call        is_symbol
+        pop         rsi
 
-        ;           Bytes below number
-        mov         r10, 3                 ; Halo width
-        movzx       r9d, byte [rsp]        ; Grid width
-        mov         r8, qword [rsp + 8]    ; Number address
-        dec         r8
-        add         r8, r9                 ; Lower-left corner
-.next:
-        ;           Loop body
-        int3
-        movzx       esi, byte [r8 + rcx]
-        push        r8
-        call        is_symbol
-        pop         r8
+        ;           Accumulate flag
+        xor         r8, r8
+        mov         r8b, byte [rsp + 8]
+        and         r8b, al
+        mov         [rsp + 8], byte al
 
-        ;           Loop logic
-        inc         rcx
-        cmp         rcx, r10               ; Check halo width
-        je          .cont
-        jmp         .next
-.cont:
+        ;           Row below
+        mov         rcx, [rsp]
+.l1:
+        dec         rcx
+        cmp         rcx, 0
+        ja          .l1
 
+        ;           Row above
+        mov         rcx, [rsp]
+.l2:
+        dec         rcx
+        cmp         rcx, 0
+        ja          .l2
 
-        pop         rbp        ; Restore base pointer
-        exit        0
+        ;           Flag indicating validity
+        xor         rax, rax
+        mov         al, byte [rsp + 8]
 
-
+        ;           Restore stack pointers
+        mov         rsp, rbp
+        pop         rbp
+        ret
 
 
 ; @param rsi - byte
