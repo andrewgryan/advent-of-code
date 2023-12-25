@@ -47,59 +47,98 @@ is_valid:
         ;           Allocate stack
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 16
+        sub         rsp, 6 * 8
 
-        ;           Flag
-        mov         [rsp + 8], dword 0
+        ;           Local variables
+        mov         [rsp + 0 * 8], rsi        ; Address
+        mov         [rsp + 1 * 8], rdi        ; Length
+        mov         [rsp + 2 * 8], rcx        ; Grid width
+        mov         [rsp + 3 * 8], rdx        ; Global address
+        mov         [rsp + 4 * 8], dword 0    ; Number width
+        mov         [rsp + 5 * 8], dword 0    ; Flag
 
-        ;           Save number length on stack
         call        parse_number_length
-        mov         [rsp], rax
+        mov         [rsp + 4 * 8], rax
 
         ;           Character after
-        push        rsi
-        mov         r8, [rsp]                 ; load len(s)
-        xor         rsi, rsi
-        mov         sil, byte [rsi + r8 + 1]  ; *str + len(s) + 1
-        call        is_symbol
-        pop         rsi
+        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rdi, [rsp + 4 * 8]        ; Number width
+        add         rsi, rdi                  ; End of number
+        inc         rsi                       ; Plus one
+        mov         sil, byte [rsi]           ; Load byte
+        call        is_symbol                 ; Check symbol
 
-        ;           Accumulate flag
-        xor         r8, r8
-        mov         r8b, byte [rsp + 8]
-        and         r8b, al
-        mov         [rsp + 8], byte al
+        ;           Bitwise AND flag
+        xor         r8, r8                    ; Clear register
+        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        and         r8b, al                   ; Flag AND rax
+        mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
         ;           Character before
-        push        rsi
-        dec         rsi
-        mov         sil, byte [rsi]           ; *str - 1
-        call        is_symbol
-        pop         rsi
+        mov         rsi, [rsp + 0 * 8]        ; Address
+        dec         rsi                       ; Subtract one
+        mov         sil, byte [rsi]           ; Load byte
+        call        is_symbol                 ; Check symbol
 
-        ;           Accumulate flag
-        xor         r8, r8
-        mov         r8b, byte [rsp + 8]
-        and         r8b, al
-        mov         [rsp + 8], byte al
+        ;           Bitwise AND flag
+        xor         r8, r8                    ; Clear register
+        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        and         r8b, al                   ; Flag AND rax
+        mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
         ;           Row below
-        mov         rcx, [rsp]
+        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rdi, [rsp + 2 * 8]        ; Grid width
+        inc         rdi                       ; Add one
+        add         rsi, rdi                  ; Add to address
+
+        ;           Loop counter
+        mov         rcx, [rsp + 4 * 8]        ; Number width
+        add         rcx, 2                    ; Add 2
 .l1:
-        dec         rcx
-        cmp         rcx, 0
-        ja          .l1
+        ;           Check character
+        mov         sil, byte [rsi + rcx]     ; Load byte
+        call        is_symbol                 ; Check symbol
+
+        ;           Bitwise AND flag
+        xor         r8, r8                    ; Clear register
+        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        and         r8b, al                   ; Flag AND rax
+        mov         [rsp + 5 * 8], byte r8b   ; Save flag
+
+        ;           Loop condition
+        dec         rcx                       ; Reduce rcx
+        cmp         rcx, 0                    ; Compare to 0
+        jl          .l1                       ; Jump < 0
 
         ;           Row above
-        mov         rcx, [rsp]
+        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rdi, [rsp + 2 * 8]        ; Grid width
+        inc         rdi                       ; Add one
+        sub         rsi, rdi                  ; Sub from address
+
+        ;           Loop counter
+        mov         rcx, [rsp + 4 * 8]        ; Number width
+        add         rcx, 2                    ; Add 2
 .l2:
-        dec         rcx
-        cmp         rcx, 0
-        ja          .l2
+        ;           Check character
+        mov         sil, byte [rsi + rcx]     ; Load byte
+        call        is_symbol                 ; Check symbol
+
+        ;           Bitwise AND flag
+        xor         r8, r8                    ; Clear register
+        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        and         r8b, al                   ; Flag AND rax
+        mov         [rsp + 5 * 8], byte r8b   ; Save flag
+
+        ;           Loop condition
+        dec         rcx                       ; Reduce rcx
+        cmp         rcx, 0                    ; Compare to 0
+        jl          .l2                       ; Jump < 0
 
         ;           Flag indicating validity
-        xor         rax, rax
-        mov         al, byte [rsp + 8]
+        xor         rax, rax                  ; Clear register
+        mov         al, byte [rsp + 5 * 8]    ; Load flag
 
         ;           Restore stack pointers
         mov         rsp, rbp
