@@ -47,7 +47,7 @@ is_valid:
         ;           Allocate stack
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 6 * 8
+        sub         rsp, 7 * 8
 
         ;           Local variables
         mov         [rsp + 0 * 8], rsi        ; Address
@@ -56,6 +56,11 @@ is_valid:
         mov         [rsp + 3 * 8], rdx        ; Global address
         mov         [rsp + 4 * 8], dword 0    ; Number width
         mov         [rsp + 5 * 8], dword 0    ; Flag
+        mov         [rsp + 6 * 8], dword 0    ; End of string
+
+        ;           End of string
+        add         rsi, rdi                  ; End of string
+        mov         [rsp + 6 * 8], rsi        ; Save
 
         call        parse_number_length
         mov         [rsp + 4 * 8], rax
@@ -65,8 +70,16 @@ is_valid:
         mov         rdi, [rsp + 4 * 8]        ; Number width
         add         rsi, rdi                  ; End of number
         inc         rsi                       ; Plus one
+
+        ;           Bounds-check
+        mov         rdx, [rsp + 3 * 8]        ; Global address
+        cmp         rsi, rdx                  ; Check in string
+        jb          .skip_1
+
+        ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
         call        is_symbol                 ; Check symbol
+.skip_1:
 
         ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
@@ -77,8 +90,16 @@ is_valid:
         ;           Character before
         mov         rsi, [rsp + 0 * 8]        ; Address
         dec         rsi                       ; Subtract one
+
+        ;           Bounds-check
+        mov         rdx, [rsp + 3 * 8]        ; Global address
+        cmp         rsi, rdx                  ; Check in string
+        jb          .skip_2
+
+        ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
         call        is_symbol                 ; Check symbol
+.skip_2:
 
         ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
@@ -86,18 +107,24 @@ is_valid:
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
+        ;           Loop counter
+        mov         rcx, [rsp + 4 * 8]        ; Number width
+        add         rcx, 2                    ; Add 2
+.l1:
         ;           Row below
         mov         rsi, [rsp + 0 * 8]        ; Address
         mov         rdi, [rsp + 2 * 8]        ; Grid width
         inc         rdi                       ; Add one
         add         rsi, rdi                  ; Add to address
 
-        ;           Loop counter
-        mov         rcx, [rsp + 4 * 8]        ; Number width
-        add         rcx, 2                    ; Add 2
-.l1:
         ;           Check character
-        mov         sil, byte [rsi + rcx]     ; Load byte
+        lea         r8, [rsi + rcx]           ; Address of byte
+        mov         r9, [rsi + 6 * 8]         ; End of string
+        cmp         r8, r9                    ; Address > End
+        ja          .skip_3
+
+        ;           Read a byte
+        mov         sil, byte [r8]            ; Load byte
         call        is_symbol                 ; Check symbol
 
         ;           Bitwise AND flag
@@ -105,24 +132,30 @@ is_valid:
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
-
+.skip_3:
         ;           Loop condition
         dec         rcx                       ; Reduce rcx
         cmp         rcx, 0                    ; Compare to 0
         jl          .l1                       ; Jump < 0
 
+        ;           Loop counter
+        mov         rcx, [rsp + 4 * 8]        ; Number width
+        add         rcx, 2                    ; Add 2
+.l2:
         ;           Row above
         mov         rsi, [rsp + 0 * 8]        ; Address
         mov         rdi, [rsp + 2 * 8]        ; Grid width
         inc         rdi                       ; Add one
         sub         rsi, rdi                  ; Sub from address
 
-        ;           Loop counter
-        mov         rcx, [rsp + 4 * 8]        ; Number width
-        add         rcx, 2                    ; Add 2
-.l2:
         ;           Check character
-        mov         sil, byte [rsi + rcx]     ; Load byte
+        lea         r8, [rsi + rcx]           ; Address of byte
+        mov         r9, [rsi + 6 * 8]         ; End of string
+        cmp         r8, r9                    ; Address > End
+        jb          .skip_4
+
+        ;           Read a byte
+        mov         sil, byte [r8]            ; Load byte
         call        is_symbol                 ; Check symbol
 
         ;           Bitwise AND flag
@@ -131,6 +164,7 @@ is_valid:
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
+.skip_4:
         ;           Loop condition
         dec         rcx                       ; Reduce rcx
         cmp         rcx, 0                    ; Compare to 0
