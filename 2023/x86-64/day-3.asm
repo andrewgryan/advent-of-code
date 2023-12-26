@@ -26,7 +26,14 @@ main:
 .l1:
         push        r8
         call        parse_until_digit
+        pop         r8
 
+        ;           Check string left to parse
+        cmp         rdi, 0
+        je          .done
+
+        ;           Validate number
+        push        r8
         push        rsi
         push        rdi
         mov         rcx, r12        ; Grid width
@@ -36,6 +43,7 @@ main:
         pop         rsi
         push        rax
 
+        ;           Read number, multiply by flag and add
         call        parse_number
         pop         r9
         pop         r8
@@ -43,6 +51,10 @@ main:
         add         r8, r9
         cmp         rdi, 0
         ja          .l1
+
+.done:
+        ;           Answer stored in r8
+        mov         rax, r8
         int3
 
         exit        0
@@ -364,7 +376,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "...", NEWLINE, \
-          ".9.", NEWLINE, \
-          "...", NEWLINE
+sample db ".....", NEWLINE, \
+          ".9.9.", NEWLINE, \
+          ".....", NEWLINE
 sample_len = $ - sample
