@@ -14,8 +14,8 @@ main:
         ; 1. Loop over numbers in string
         ; 2. Test each number for nearby symbols
         ; 3. Sum numbers which pass test
-        mov         rsi, sample
-        mov         rdi, sample_len
+        mov         rsi, input
+        mov         rdi, input_len
 
         ;           Grid width
         call        grid_width
@@ -37,7 +37,7 @@ main:
         push        rsi
         push        rdi
         mov         rcx, r12        ; Grid width
-        mov         rdx, sample      ; Original string
+        mov         rdx, input      ; Original string
         call        is_valid
         pop         rdi
         pop         rsi
@@ -54,7 +54,6 @@ main:
 
 .done:
         ;           Answer stored in r8
-        int3
         mov         rsi, r8
         call        print_register
 
@@ -80,7 +79,7 @@ is_valid:
         mov         [rsp + 2 * 8], rcx        ; Grid width
         mov         [rsp + 3 * 8], rdx        ; Global address
         mov         [rsp + 4 * 8], dword 0    ; Number of digits
-        mov         [rsp + 5 * 8], dword 1    ; Flag default True
+        mov         [rsp + 5 * 8], dword 0    ; Flag default True
         mov         [rsp + 6 * 8], dword 0    ; End of string address
 
         ;           End of string address
@@ -105,11 +104,11 @@ is_valid:
 
         ;           Read and test
         movzx       rsi, byte [rsi]           ; Load byte
-        call        is_dot_or_newline         ; Check symbol
+        call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         movzx       r8, byte [rsp + 5 * 8]    ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_1:
 
@@ -124,11 +123,11 @@ is_valid:
 
         ;           Read and test
         movzx       rsi, byte [rsi]           ; Load byte
-        call        is_dot_or_newline         ; Check symbol
+        call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         movzx       r8, byte [rsp + 5 * 8]    ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_2:
 
@@ -148,11 +147,11 @@ is_valid:
 
         ;           Read a byte
         movzx       rsi, byte [r8]            ; Load byte
-        call        is_dot_or_newline         ; Check symbol
+        call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         movzx       r8, byte [rsp + 5 * 8]    ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or          r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
 .skip_3:
@@ -179,11 +178,11 @@ is_valid:
 
         ;           Read a byte
         movzx       rsi, byte [r8]            ; Load byte
-        call        is_dot_or_newline         ; Check symbol
+        call        is_symbol                 ; Check symbol
 
-        ;           Bitwise AND flag
+        ;           Bitwise OR flag
         movzx       r8, byte [rsp + 5 * 8]    ; Load flag
-        and         r8b, al                   ; Flag AND rax
+        or         r8b, al                   ; Flag OR rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
 .skip_4:
@@ -204,22 +203,13 @@ is_valid:
 
 ; @param rsi - byte
 is_symbol:
-        call        is_digit
-        push        rax
-
-        call        is_dot
-        push        rax
-
-        ;           Compare digit(c) and dot(c)
-        pop         r8
-        pop         r9
-        add         r8, r9
-        cmp         r8, 0
-        je          .succeed
-        mov         rax, 0
-        ret
-.succeed:
+        call        is_dot_or_newline
+        cmp         rax, 1
+        je          .fail
         mov         rax, 1
+        ret
+.fail:
+        mov         rax, 0
         ret
 
 
@@ -384,7 +374,5 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "..", NEWLINE, \
-          ".7", NEWLINE, \
-          "..", NEWLINE
+sample file "example-3"
 sample_len = $ - sample
