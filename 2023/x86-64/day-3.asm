@@ -79,7 +79,7 @@ is_valid:
         mov         [rsp + 2 * 8], rcx        ; Grid width
         mov         [rsp + 3 * 8], rdx        ; Global address
         mov         [rsp + 4 * 8], dword 0    ; Number of digits
-        mov         [rsp + 5 * 8], dword 0    ; Flag
+        mov         [rsp + 5 * 8], dword 1    ; Flag default True
         mov         [rsp + 6 * 8], dword 0    ; End of string address
 
         ;           End of string address
