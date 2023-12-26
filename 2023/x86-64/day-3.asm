@@ -377,6 +377,6 @@ input file "input-3"
 input_len = $ - input
 
 sample db ".....", NEWLINE, \
-          ".9.9.", NEWLINE, \
+          ".9.9*", NEWLINE, \
           ".....", NEWLINE
 sample_len = $ - sample
