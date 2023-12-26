@@ -68,10 +68,10 @@ is_valid:
         mov         [rsp + 3 * 8], rdx        ; Global address
         mov         [rsp + 4 * 8], dword 0    ; Number width
         mov         [rsp + 5 * 8], dword 0    ; Flag
-        mov         [rsp + 6 * 8], dword 0    ; End of string
+        mov         [rsp + 6 * 8], dword 0    ; End of string address
 
-        ;           End of string
-        add         rsi, rdi                  ; End of string
+        ;           End of string address
+        add         rsi, rdi                  ; Add start to length
         mov         [rsp + 6 * 8], rsi        ; Save
 
         call        parse_number_length
@@ -83,9 +83,9 @@ is_valid:
         add         rsi, rdi                  ; End of number
 
         ;           Bounds-check
-        mov         rdx, [rsp + 3 * 8]        ; Global address
+        mov         rdx, [rsp + 6 * 8]        ; End of string address
         cmp         rsi, rdx                  ; Check in string
-        jb          .skip_1
+        ja          .skip_1
 
         ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
@@ -99,11 +99,11 @@ is_valid:
 .skip_1:
 
         ;           Character before
-        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rsi, [rsp + 0 * 8]        ; Number address
         dec         rsi                       ; Subtract one
 
         ;           Bounds-check
-        mov         rdx, [rsp + 3 * 8]        ; Global address
+        mov         rdx, [rsp + 3 * 8]        ; String start address
         cmp         rsi, rdx                  ; Check in string
         jb          .skip_2
 
@@ -123,7 +123,7 @@ is_valid:
         add         rcx, 2                    ; Add 2
 .l1:
         ;           Row below
-        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rsi, [rsp + 0 * 8]        ; Number address
         mov         rdi, [rsp + 2 * 8]        ; Grid width
         inc         rdi                       ; Add one
         add         rsi, rdi                  ; Add to address
@@ -148,22 +148,22 @@ is_valid:
         ;           Loop condition
         dec         rcx                       ; Reduce rcx
         cmp         rcx, 0                    ; Compare to 0
-        jl          .l1                       ; Jump < 0
+        jge         .l1                       ; Jump >= 0
 
         ;           Loop counter
         mov         rcx, [rsp + 4 * 8]        ; Number width
         add         rcx, 2                    ; Add 2
 .l2:
         ;           Row above
-        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rsi, [rsp + 0 * 8]        ; Number address
         mov         rdi, [rsp + 2 * 8]        ; Grid width
         inc         rdi                       ; Add one
         sub         rsi, rdi                  ; Sub from address
 
         ;           Check character
         lea         r8, [rsi + rcx]           ; Address of byte
-        mov         r9, [rsp + 6 * 8]         ; End of string
-        cmp         r8, r9                    ; Address > End
+        mov         r9, [rsp + 3 * 8]         ; Start of string
+        cmp         r8, r9                    ; Address < Start
         jb          .skip_4
 
         ;           Read a byte
@@ -180,7 +180,7 @@ is_valid:
         ;           Loop condition
         dec         rcx                       ; Reduce rcx
         cmp         rcx, 0                    ; Compare to 0
-        jl          .l2                       ; Jump < 0
+        jge         .l2                       ; Jump >= 0
 
         ;           Flag indicating validity
         xor         rax, rax                  ; Clear register
