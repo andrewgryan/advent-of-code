@@ -11,11 +11,17 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        mov         rsi, input
-        mov         rdi, input_len
-        call        until_cog
+        ;           Index a string
+        mov         rsi, sample
+        mov         rdi, 2
+        call        getchar
         int3
         exit        0
+
+
+getchar:
+        movzx       rax, byte [rsi + rdi]
+        ret
 
 
 until_cog:
@@ -414,5 +420,5 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "***aaaaaaaaaaaaa"
+sample db "1234567890"
 sample_len = $ - sample
