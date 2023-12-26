@@ -11,6 +11,46 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
+        mov         rsi, input
+        mov         rdi, input_len
+        call        until_cog
+        int3
+        exit        0
+
+
+until_cog:
+        mov         rcx, is_cog
+        call        until
+        ret
+
+
+until:
+.l1:
+        cmp         rdi, 0
+        jz          .done
+
+        push        rsi
+        movzx       rsi, byte [rsi]
+        call        rcx
+        pop         rsi
+        cmp         rax, 1
+        je          .done
+
+        inc         rsi
+        dec         rdi
+        jmp         .l1
+.done:
+        ret
+
+
+is_cog:
+        cmp         sil, '*'
+        sete        al
+        movzx       rax, al
+        ret
+
+
+part_1:
         ; 1. Loop over numbers in string
         ; 2. Test each number for nearby symbols
         ; 3. Sum numbers which pass test
@@ -56,8 +96,8 @@ main:
         ;           Answer stored in r8
         mov         rsi, r8
         call        print_register
+        ret
 
-        exit        0
 
 
 ; Detect a valid digit by examining it's surrounding chars
@@ -374,5 +414,5 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample file "example-3"
+sample db "***aaaaaaaaaaaaa"
 sample_len = $ - sample
