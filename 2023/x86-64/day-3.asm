@@ -106,10 +106,10 @@ is_valid:
         mov         sil, byte [rsi]           ; Load byte
         call        is_dot                    ; Check symbol
 
-        ;           Bitwise OR flag
+        ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        or          r8b, al                   ; Flag OR rax
+        and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_1:
 
@@ -126,10 +126,10 @@ is_valid:
         mov         sil, byte [rsi]           ; Load byte
         call        is_dot                    ; Check symbol
 
-        ;           Bitwise OR flag
+        ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        or          r8b, al                   ; Flag OR rax
+        and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_2:
 
@@ -154,10 +154,10 @@ is_valid:
         mov         sil, byte [r8]            ; Load byte
         call        is_dot                    ; Check symbol
 
-        ;           Bitwise OR flag
+        ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        or          r8b, al                   ; Flag OR rax
+        and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
 .skip_3:
@@ -187,10 +187,10 @@ is_valid:
         mov         sil, byte [r8]            ; Load byte
         call        is_dot                    ; Check symbol
 
-        ;           Bitwise OR flag
+        ;           Bitwise AND flag
         xor         r8, r8                    ; Clear register
         mov         r8b, byte [rsp + 5 * 8]   ; Load flag
-        or          r8b, al                   ; Flag OR rax
+        and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
 .skip_4:
