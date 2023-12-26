@@ -123,7 +123,7 @@ is_valid:
 
         ;           Loop counter
         mov         rcx, [rsp + 4 * 8]        ; Number width
-        add         rcx, 2                    ; Add 2
+        add         rcx, 1                    ; Add 1
 .l1:
         ;           Row below
         mov         rsi, [rsp + 0 * 8]        ; Number address
@@ -138,6 +138,7 @@ is_valid:
         ja          .skip_3
 
         ;           Read a byte
+        xor         rsi, rsi
         mov         sil, byte [r8]            ; Load byte
         call        is_dot                    ; Check symbol
 
@@ -155,7 +156,7 @@ is_valid:
 
         ;           Loop counter
         mov         rcx, [rsp + 4 * 8]        ; Number width
-        add         rcx, 2                    ; Add 2
+        add         rcx, 1                    ; Add 1
 .l2:
         ;           Row above
         mov         rsi, [rsp + 0 * 8]        ; Number address
@@ -170,6 +171,7 @@ is_valid:
         jb          .skip_4
 
         ;           Read a byte
+        xor         rsi, rsi
         mov         sil, byte [r8]            ; Load byte
         call        is_dot                    ; Check symbol
 
