@@ -14,8 +14,8 @@ main:
         ; 1. Loop over numbers in string
         ; 2. Test each number for nearby symbols
         ; 3. Sum numbers which pass test
-        mov         rsi, sample
-        mov         rdi, sample_len
+        mov         rsi, input
+        mov         rdi, input_len
 
         ;           Grid width
         call        grid_width
@@ -37,7 +37,7 @@ main:
         push        rsi
         push        rdi
         mov         rcx, r12        ; Grid width
-        mov         rdx, sample      ; Original string
+        mov         rdx, input      ; Original string
         call        is_valid
         pop         rdi
         pop         rsi
@@ -54,9 +54,8 @@ main:
 
 .done:
         ;           Answer stored in r8
-        mov         rax, r8
-        int3
-
+        mov         rsi, r8
+        call        print_register
         exit        0
 
 
