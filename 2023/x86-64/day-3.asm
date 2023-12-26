@@ -14,8 +14,8 @@ main:
         ; 1. Loop over numbers in string
         ; 2. Test each number for nearby symbols
         ; 3. Sum numbers which pass test
-        mov         rsi, input
-        mov         rdi, input_len
+        mov         rsi, sample
+        mov         rdi, sample_len
 
         ;           Grid width
         call        grid_width
@@ -37,7 +37,7 @@ main:
         push        rsi
         push        rdi
         mov         rcx, r12        ; Grid width
-        mov         rdx, input      ; Original string
+        mov         rdx, sample      ; Original string
         call        is_valid
         pop         rdi
         pop         rsi
@@ -54,8 +54,10 @@ main:
 
 .done:
         ;           Answer stored in r8
+        int3
         mov         rsi, r8
         call        print_register
+
         exit        0
 
 
@@ -102,12 +104,11 @@ is_valid:
         ja          .skip_1
 
         ;           Read and test
-        mov         sil, byte [rsi]           ; Load byte
-        call        is_dot                    ; Check symbol
+        movzx       rsi, byte [rsi]           ; Load byte
+        call        is_dot_or_newline         ; Check symbol
 
         ;           Bitwise AND flag
-        xor         r8, r8                    ; Clear register
-        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        movzx       r8, byte [rsp + 5 * 8]    ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_1:
@@ -122,24 +123,21 @@ is_valid:
         jb          .skip_2
 
         ;           Read and test
-        mov         sil, byte [rsi]           ; Load byte
-        call        is_dot                    ; Check symbol
+        movzx       rsi, byte [rsi]           ; Load byte
+        call        is_dot_or_newline         ; Check symbol
 
         ;           Bitwise AND flag
-        xor         r8, r8                    ; Clear register
-        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        movzx       r8, byte [rsp + 5 * 8]    ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 .skip_2:
 
-        ;           Loop counter
+        ;           ROW BELOW
         mov         rcx, [rsp + 4 * 8]        ; Number width
         add         rcx, 1                    ; Add 1
 .l1:
-        ;           Row below
         mov         rsi, [rsp + 0 * 8]        ; Number address
         mov         rdi, [rsp + 2 * 8]        ; Grid width
-        inc         rdi                       ; Add one
         add         rsi, rdi                  ; Add to address
 
         ;           Check character
@@ -149,13 +147,11 @@ is_valid:
         ja          .skip_3
 
         ;           Read a byte
-        xor         rsi, rsi
-        mov         sil, byte [r8]            ; Load byte
-        call        is_dot                    ; Check symbol
+        movzx       rsi, byte [r8]            ; Load byte
+        call        is_dot_or_newline         ; Check symbol
 
         ;           Bitwise AND flag
-        xor         r8, r8                    ; Clear register
-        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        movzx       r8, byte [rsp + 5 * 8]    ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
@@ -165,15 +161,15 @@ is_valid:
         cmp         rcx, 0                    ; Compare to 0
         jge         .l1                       ; Jump >= 0
 
-        ;           Loop counter
+        ;           ROW ABOVE
         mov         rcx, [rsp + 4 * 8]        ; Number width
         add         rcx, 1                    ; Add 1
 .l2:
-        ;           Row above
         mov         rsi, [rsp + 0 * 8]        ; Number address
         mov         rdi, [rsp + 2 * 8]        ; Grid width
         inc         rdi                       ; Add one
         sub         rsi, rdi                  ; Sub from address
+        dec         rsi                       ; Top-left corner
 
         ;           Check character
         lea         r8, [rsi + rcx]           ; Address of byte
@@ -182,13 +178,11 @@ is_valid:
         jb          .skip_4
 
         ;           Read a byte
-        xor         rsi, rsi
-        mov         sil, byte [r8]            ; Load byte
-        call        is_dot                    ; Check symbol
+        movzx       rsi, byte [r8]            ; Load byte
+        call        is_dot_or_newline         ; Check symbol
 
         ;           Bitwise AND flag
-        xor         r8, r8                    ; Clear register
-        mov         r8b, byte [rsp + 5 * 8]   ; Load flag
+        movzx       r8, byte [rsp + 5 * 8]    ; Load flag
         and         r8b, al                   ; Flag AND rax
         mov         [rsp + 5 * 8], byte r8b   ; Save flag
 
@@ -242,20 +236,30 @@ is_digit:
         mov        rax, 0
         ret
 
+
+; @param rsi - byte
+is_dot_or_newline:
+        call       is_dot
+        mov        r8b, al
+        call       is_newline
+        or         al, r8b
+        movzx      rax, al
+        ret
+
+
 ; @param rsi - byte
 is_newline:
-        cmp        sil, '\n'
-        sete       rax
+        cmp        sil, NEWLINE
+        sete       al
+        movzx      rax, al
         ret
+
 
 ; @param rsi - byte
 is_dot:
         cmp        sil, '.'
-        jne        .fail
-        mov        rax, 1
-        ret
-.fail:
-        mov        rax, 0
+        sete       al
+        movzx      rax, al
         ret
 
 
@@ -380,7 +384,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db ".....", NEWLINE, \
-          ".9.9*", NEWLINE, \
-          ".....", NEWLINE
+sample db "..", NEWLINE, \
+          ".7", NEWLINE, \
+          "..", NEWLINE
 sample_len = $ - sample
