@@ -242,6 +242,11 @@ is_digit:
         mov        rax, 0
         ret
 
+; @param rsi - byte
+is_newline:
+        cmp        sil, '\n'
+        sete       rax
+        ret
 
 ; @param rsi - byte
 is_dot:
