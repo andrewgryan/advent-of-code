@@ -66,7 +66,7 @@ is_valid:
         mov         [rsp + 1 * 8], rdi        ; Length
         mov         [rsp + 2 * 8], rcx        ; Grid width
         mov         [rsp + 3 * 8], rdx        ; Global address
-        mov         [rsp + 4 * 8], dword 0    ; Number width
+        mov         [rsp + 4 * 8], dword 0    ; Number of digits
         mov         [rsp + 5 * 8], dword 0    ; Flag
         mov         [rsp + 6 * 8], dword 0    ; End of string address
 
@@ -74,6 +74,9 @@ is_valid:
         add         rsi, rdi                  ; Add start to length
         mov         [rsp + 6 * 8], rsi        ; Save
 
+        ;           Number of digits
+        mov         rsi, [rsp + 0 * 8]        ; Address
+        mov         rdi, [rsp + 1 * 8]        ; Length
         call        parse_number_length
         mov         [rsp + 4 * 8], rax
 
@@ -89,7 +92,7 @@ is_valid:
 
         ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
-        call        is_symbol                 ; Check symbol
+        call        is_dot                    ; Check symbol
 
         ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
@@ -109,7 +112,7 @@ is_valid:
 
         ;           Read and test
         mov         sil, byte [rsi]           ; Load byte
-        call        is_symbol                 ; Check symbol
+        call        is_dot                    ; Check symbol
 
         ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
@@ -136,7 +139,7 @@ is_valid:
 
         ;           Read a byte
         mov         sil, byte [r8]            ; Load byte
-        call        is_symbol                 ; Check symbol
+        call        is_dot                    ; Check symbol
 
         ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
@@ -168,7 +171,7 @@ is_valid:
 
         ;           Read a byte
         mov         sil, byte [r8]            ; Load byte
-        call        is_symbol                 ; Check symbol
+        call        is_dot                    ; Check symbol
 
         ;           Bitwise OR flag
         xor         r8, r8                    ; Clear register
@@ -360,6 +363,6 @@ input file "input-3"
 input_len = $ - input
 
 sample db "...", NEWLINE, \
-          ".9#", NEWLINE, \
+          ".9.", NEWLINE, \
           "...", NEWLINE
 sample_len = $ - sample
