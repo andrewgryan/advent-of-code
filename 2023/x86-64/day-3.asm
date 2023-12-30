@@ -13,12 +13,62 @@ entry main
 main:
         ;           Index a string
         mov         rsi, sample
-        mov         rdi, 2
-        call        getchar
+        mov         rdi, sample_len
+        call        scan_int
         int3
+
+        mov         r8, rax
+        call        print_register
+
         exit        0
 
 
+; Scan integer
+scan_int:
+        ; Scan to right
+.l1:
+        cmp         rdi, 0
+        je          .d1
+
+        call        is_digit
+        cmp         rax, 0
+        je          .d1
+
+        inc         rsi
+        dec         rdi
+        jmp         .l1
+
+.d1:
+
+        ; Calculate from left
+        xor         r8, r8       ; Total
+        mov         r10, 1       ; Power of 10
+.l2:
+        call        is_digit
+        cmp         rax, 0
+        je          .d2
+
+        call        parse_digit
+        imul        r9, rax
+        add         r8, r9
+
+        ;           Next character and power
+        imul        r10, 0x0a        ; Raise power of 10
+        dec         rsi              ; Move str pointer left
+        inc         rdi              ; Increase str length
+        jmp         .l2
+
+.d2:
+        mov         rax, r8
+        ret
+
+
+; Get a character
+;
+; @param rsi - address of str
+; @param rdi - offset
+;
+; @returns rax - byte
 getchar:
         movzx       rax, byte [rsi + rdi]
         ret
