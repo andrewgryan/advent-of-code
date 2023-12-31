@@ -23,6 +23,27 @@ main:
         exit        0
 
 
+; Count numbers on row
+;
+; ... -> 0
+; x.. -> 1
+; .x. -> 1
+; ..x -> 1
+; xx. -> 1
+; .xx -> 1
+; xxx -> 1
+; x.x -> 2
+;
+count_row:
+        mov        rax, 1
+        ;          TODO: Two case
+        cmp        rax, 0b101
+
+        ;          TODO: Zero case
+        cmp        rax, 0b000
+        ret
+
+
 ; Scan integer
 ;
 ; Side effect: Changes r8 and r10 registers
@@ -30,6 +51,8 @@ main:
 ; @param {string} rsi - pointer to string
 ; @param {int}    rdi - length
 ; @param {string} rdx - string origin
+;
+; @returns {int}  rax - value under cursor
 scan_int:
         ;           Save arguments on stack
         push        rsi
@@ -98,9 +121,19 @@ scan_int:
 
 
 ; @param rsi - ASCII character
+is_digit:
+        sub        sil, '0'
+        cmp        sil, 9
+        setna      al
+        movzx      rax, al
+        add        sil, '0'
+        ret
+
+
+; @param rsi - ASCII character [0-9]
 to_digit:
         movzx      rax, sil
-        sub        al, 48
+        sub        al, '0'
         ret
 
 
@@ -347,20 +380,6 @@ is_symbol:
         ret
 .fail:
         mov         rax, 0
-        ret
-
-
-; @param rsi - byte
-is_digit:
-        sub        sil, '0'
-        cmp        sil, 9
-        ja         .fail
-        add        sil, '0'
-        mov        rax, 1
-        ret
-.fail:
-        add        sil, '0'
-        mov        rax, 0
         ret
 
 
