@@ -12,13 +12,9 @@ segment readable executable
 entry main
 main:
         ;           Scan int from arbitrary place
-        lea         rsi, [sample + 3]
+        mov         rsi, sample
         mov         rdi, sample_len
-        mov         rdx, sample
-        call        scan_int
-
-        mov         rsi, rax
-        call        print_register
+        call        count_row
 
         exit        0
 
@@ -34,13 +30,47 @@ main:
 ; xxx -> 1
 ; x.x -> 2
 ;
+; @param {string} rsi - pointer to string
+;
+; @returns {int}  rax - overlapping number count
 count_row:
-        mov        rax, 1
-        ;          TODO: Two case
-        cmp        rax, 0b101
+        ;          ASCII to bool
+        xor        rdx, rdx
+        mov        rcx, 2
+        mov        r8, 0
+.l1:
+        ;          Detect digit
+        push       rsi
+        movzx      rsi, byte [rsi + r8]
+        call       is_digit
+        pop        rsi
 
-        ;          TODO: Zero case
-        cmp        rax, 0b000
+        ;          Move to binary position
+        shl        al, cl
+        add        rdx, rax
+
+        ;          Next iteration
+        inc        r8
+        dec        rcx
+        cmp        rcx, 0
+        jge        .l1
+
+        ;          Two numbers
+        cmp        dl, 0101b
+        je         .r2
+        ;          Zero numbers
+        cmp        dl, 0000b
+        je         .r2
+        ;          One number
+        jmp        .r1
+.r0:
+        mov rax, 0
+        ret
+.r1:
+        mov rax, 1
+        ret
+.r2:
+        mov rax, 2
         ret
 
 
@@ -530,6 +560,5 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-padding db "..1" ; Store digit in memory before str
-sample db "1234567890"
+sample db "1.2"
 sample_len = $ - sample

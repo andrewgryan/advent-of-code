@@ -1,3 +1,5 @@
+# Register synonyms
+
 64-bit | 32-bit | 16-bit | 8-bit
 -------|--------|--------|-------
 rax    | eax    | ax     | ah, al
@@ -16,3 +18,15 @@ r12    | r12d   | r12w   | r12b
 r13    | r13d   | r13w   | r13b
 r14    | r14d   | r14w   | r14b
 r15    | r15d   | r15w   | r15b
+
+# System V ABI
+A common convention for using registers in x86-64
+
+## Argument registers
+rdi, rsi, rdx, rcx, r8, r9
+
+## Scratch registers
+rax, rdi, rsi, rdx, rcx, r8, r9, r10, r11
+
+## Preserved registers
+rbx, rsp, rbp, r12, r13, r14, r15
