@@ -17,7 +17,7 @@ main:
         mov         rdx, sample
         call        scan_int
 
-        mov         r8, rax
+        mov         rsi, rax
         call        print_register
 
         exit        0
@@ -49,7 +49,6 @@ scan_int:
         ; Calculate from left
         xor         r8, r8           ; Total
         mov         r10, 1           ; Power of 10
-        int3
 .l2:
         ;           Move cursor left
         dec         rsi              ; Move str pointer left
@@ -68,14 +67,13 @@ scan_int:
 
         ;           Continue summation
         push        rsi
-        push        rdi
-        call        parse_digit
-        pop         rdi
+        movzx       rsi, byte [rsi]
+        call        to_digit
         pop         rsi
 
-        ;           x += d * (10**i)
-        imul        r9, rax
-        add         r8, r9
+        ;           Add next term to sum
+        imul        rax, r10         ; rax = rax * (10 ** i)
+        add         r8, rax          ; r8 = r8 + rax
 
         ;           Raise power
         imul        r10, 0x0a        ; Raise power of 10
@@ -83,6 +81,13 @@ scan_int:
 
 .d2:
         mov         rax, r8
+        ret
+
+
+; @param rsi - ASCII character
+to_digit:
+        movzx      rax, sil
+        sub        al, 48
         ret
 
 
