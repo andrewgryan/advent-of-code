@@ -11,11 +11,11 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        ;           Index a string
+        ;           Scan int from arbitrary place
         mov         rsi, sample
         mov         rdi, sample_len
+        mov         rdx, sample
         call        scan_int
-        int3
 
         mov         r8, rax
         call        print_register
@@ -24,13 +24,19 @@ main:
 
 
 ; Scan integer
+; @param {string} rsi - pointer to string
+; @param {int}    rdi - length
+; @param {string} rdx - string origin
 scan_int:
         ; Scan to right
 .l1:
         cmp         rdi, 0
         je          .d1
 
+        push        rsi
+        movzx       rsi, byte [rsi]
         call        is_digit
+        pop         rsi
         cmp         rax, 0
         je          .d1
 
@@ -41,21 +47,38 @@ scan_int:
 .d1:
 
         ; Calculate from left
-        xor         r8, r8       ; Total
-        mov         r10, 1       ; Power of 10
+        xor         r8, r8           ; Total
+        mov         r10, 1           ; Power of 10
+        int3
 .l2:
+        ;           Move cursor left
+        dec         rsi              ; Move str pointer left
+        inc         rdi              ; Increase str length
+
+        ;           Check inside string
+        ;           TODO
+
+        ;           Check character represents digit
+        push        rsi
+        movzx       rsi, byte [rsi]
         call        is_digit
+        pop         rsi
         cmp         rax, 0
         je          .d2
 
+        ;           Continue summation
+        push        rsi
+        push        rdi
         call        parse_digit
+        pop         rdi
+        pop         rsi
+
+        ;           x += d * (10**i)
         imul        r9, rax
         add         r8, r9
 
-        ;           Next character and power
+        ;           Raise power
         imul        r10, 0x0a        ; Raise power of 10
-        dec         rsi              ; Move str pointer left
-        inc         rdi              ; Increase str length
         jmp         .l2
 
 .d2:
