@@ -12,7 +12,7 @@ segment readable executable
 entry main
 main:
         ;           Scan int from arbitrary place
-        mov         rsi, sample
+        lea         rsi, [sample + 3]
         mov         rdi, sample_len
         mov         rdx, sample
         call        scan_int
@@ -24,10 +24,17 @@ main:
 
 
 ; Scan integer
+;
+; Side effect: Changes r8 and r10 registers
+;
 ; @param {string} rsi - pointer to string
 ; @param {int}    rdi - length
 ; @param {string} rdx - string origin
 scan_int:
+        ;           Save arguments on stack
+        push        rsi
+        push        rdi
+
         ; Scan to right
 .l1:
         cmp         rdi, 0
@@ -55,7 +62,8 @@ scan_int:
         inc         rdi              ; Increase str length
 
         ;           Check inside string
-        ;           TODO
+        cmp         rsi, rdx
+        jb          .d2
 
         ;           Check character represents digit
         push        rsi
@@ -80,7 +88,12 @@ scan_int:
         jmp         .l2
 
 .d2:
+        ;           Fill return register
         mov         rax, r8
+
+        ;           Restore arguments from stack
+        pop         rdi
+        pop         rsi
         ret
 
 
@@ -498,5 +511,6 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
+padding db "..1" ; Store digit in memory before str
 sample db "1234567890"
 sample_len = $ - sample
