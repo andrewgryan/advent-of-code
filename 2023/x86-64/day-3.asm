@@ -1,5 +1,9 @@
 format ELF64 executable
 
+; NOTE: System V ABI argument order is rdi, rsi ...
+;       some code below uses rsi, rdi, ...
+;       a refactor is in progress to correct it
+
 
 include "util.inc"
 include "parsers.asm"
@@ -12,32 +16,65 @@ segment readable executable
 entry main
 main:
         ;           Scan int from arbitrary place
-        mov         rsi, sample
-        mov         rdi, sample_len
-        call        count_row
+        mov         rdi, sample
+        mov         rsi, 4        ; Row length including \n
+        call        count_square
         int3
 
         exit        0
 
 ; Count square
 ;
-; @param {string} rsi - pointer to string
+; @param {string} rdi - pointer to string
+; @param {int}    rsi - row length
 ;
 ; @returns {int}  rax - number count
 count_square:
-        mov         rcx, 0
+        xor         rcx, rcx
+        xor         r9, r9
 .l1:
-        push        rsi
-        ;           TODO: locate row start
-        call        count_row
-        pop         rsi
+        ;           Save registers on stack
+        push        rcx                     ; Loop index
+        push        rdi                     ; Address
+        push        rsi                     ; Row length
+        push        r9                      ; Sum
 
+        ;           Move pointer to start of row
+        mov         rdx, rsi                ; Row length
+        mov         rsi, rcx                ; Row index
+        call        row_position
+
+        ;           Count numbers on row
+        mov         rdi, rax                ; Address
+        call        count_row
+        pop         r9
+
+        ;           Sum numbers
+        add         r9, rax
+
+        pop         rsi
+        pop         rdi
+
+        ;           Next row index
+        pop         rcx
         inc         rcx
         cmp         rcx, 2
         jle         .l1
 
-        mov         rax, 0
+        ;           Move sum to return register
+        mov         rax, r9
         ret
+
+
+; @param {string} rdi - address
+; @param {int}    rsi - row index
+; @param {int}    rdx - row length
+row_position:
+        mov         rax, rsi       ; result = index
+        imul        rax, rdx       ; result = result * length
+        add         rax, rdi       ; result += start
+        ret
+
 
 ; Count numbers on row
 ;
@@ -50,7 +87,7 @@ count_square:
 ; xxx -> 1
 ; x.x -> 2
 ;
-; @param {string} rsi - pointer to string
+; @param {string} rdi - pointer to string
 ;
 ; @returns {int}  rax - overlapping number count
 count_row:
@@ -60,10 +97,10 @@ count_row:
         mov        r8, 0
 .l1:
         ;          Detect digit
-        push       rsi
-        movzx      rsi, byte [rsi + r8]
+        push       rdi
+        movzx      rdi, byte [rdi + r8]
         call       is_digit
-        pop        rsi
+        pop        rdi
 
         ;          Move to binary position
         shl        al, cl
@@ -170,19 +207,19 @@ scan_int:
         ret
 
 
-; @param rsi - ASCII character
+; @param rdi - ASCII character
 is_digit:
-        sub        sil, '0'
-        cmp        sil, 9
+        sub        dil, '0'
+        cmp        dil, 9
         setna      al
         movzx      rax, al
-        add        sil, '0'
+        add        dil, '0'
         ret
 
 
-; @param rsi - ASCII character [0-9]
+; @param rdi - ASCII character [0-9]
 to_digit:
-        movzx      rax, sil
+        movzx      rax, dil
         sub        al, '0'
         ret
 
@@ -580,7 +617,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "123", NEWLINE, \
+sample db "11.", NEWLINE, \
           "1.1", NEWLINE, \
-          "..."
+          ".11"
 sample_len = $ - sample
