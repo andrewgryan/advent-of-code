@@ -15,9 +15,29 @@ main:
         mov         rsi, sample
         mov         rdi, sample_len
         call        count_row
+        int3
 
         exit        0
 
+; Count square
+;
+; @param {string} rsi - pointer to string
+;
+; @returns {int}  rax - number count
+count_square:
+        mov         rcx, 0
+.l1:
+        push        rsi
+        ;           TODO: locate row start
+        call        count_row
+        pop         rsi
+
+        inc         rcx
+        cmp         rcx, 2
+        jle         .l1
+
+        mov         rax, 0
+        ret
 
 ; Count numbers on row
 ;
@@ -60,7 +80,7 @@ count_row:
         je         .r2
         ;          Zero numbers
         cmp        dl, 0000b
-        je         .r2
+        je         .r0
         ;          One number
         jmp        .r1
 .r0:
@@ -560,5 +580,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "1.2"
+sample db "123", NEWLINE, \
+          "1.1", NEWLINE, \
+          "..."
 sample_len = $ - sample
