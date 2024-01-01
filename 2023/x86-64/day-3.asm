@@ -17,13 +17,6 @@ entry main
 main:
         mov         rdi, sample
         mov         rsi, sample_len
-
-        ;           Move str 5 places
-        add         rdi, 5
-        sub         rsi, 5
-
-        mov         rdx, 4                ; Row length
-        call        top_left
         
         int3
 
