@@ -23,6 +23,17 @@ main:
 
         exit        0
 
+
+; Row length
+row_length:
+.l1:
+        movzx       r8, byte [rdi]
+        cmp         r8, NEWLINE
+        jmp         .l1
+        mov         rax, 0
+        ret
+
+
 ; Count square
 ;
 ; @param {string} rdi - pointer to string
