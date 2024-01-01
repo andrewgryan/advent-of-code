@@ -16,24 +16,26 @@ segment readable executable
 entry main
 main:
         ;           Scan int from arbitrary place
-        mov         rdi, sample
-        mov         rsi, sample_len
-        call        until_digit
-
-        mov         rdx, sample
-        call        scan_int
+        mov         rdi, input
+        call        row_length
         int3
 
         exit        0
 
 
 ; Row length
+;
+; @param {string} rdi - pointer to string
+; @returns {int}  rax - length
 row_length:
+        xor         rax, rax
 .l1:
-        movzx       r8, byte [rdi]
-        cmp         r8, NEWLINE
+        cmp         byte [rdi + rax], NEWLINE
+        je          .d1
+        inc         rax
         jmp         .l1
-        mov         rax, 0
+.d1:
+        inc         rax
         ret
 
 
@@ -744,7 +746,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "...", NEWLINE, \
-          "..7", NEWLINE, \
-          ".23"
+sample db "a..", NEWLINE, \
+          "b.7", NEWLINE, \
+          "c23"
 sample_len = $ - sample
