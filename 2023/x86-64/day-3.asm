@@ -18,7 +18,7 @@ main:
         ;           Scan int from arbitrary place
         mov         rdi, sample
         mov         rsi, 4        ; Row length including \n
-        call        count_square
+        call        count_part_numbers
         int3
 
         exit        0
@@ -42,32 +42,93 @@ row_length:
 eval_cog:
         call        count_part_numbers
         cmp         rax, 2
-        je          .solve
+        je          .has_value
 
         ;           Default case
         mov         rax, 0
         ret
 
-.solve:
+.has_value:
         call        eval_part_numbers
         ret
 
 
 ; Multiply part numbers together
+;
+; @param {string} rdi - pointer to string
+; @param {int}    rsi - row length
+;
+; @returns {int}  rax - number product
 eval_part_numbers:
-        mov         r8, 1
+        xor         rcx, rcx
+        xor         r9, 1
 .l1:
+        ;           Save registers on stack
+        push        rcx                     ; Loop index
+        push        rdi                     ; Address
+        push        rsi                     ; Row length
+        push        r9                      ; Product
+
+        ;           Move pointer to start of row
+        mov         rdx, rsi                ; Row length
+        mov         rsi, rcx                ; Row index
+        call        row_position
+
+        ;           Eval numbers on row
+        mov         rdi, rax                ; Address
         call        eval_row
+        pop         r9
+
+        ;           Product numbers
+        add         r9, rax
+
+        pop         rsi
+        pop         rdi
+
+        ;           Next row index
+        pop         rcx
+        inc         rcx
+        cmp         rcx, 2
+        jle         .l1
+
+        ;           Move sum to return register
+        mov         rax, r9
+        ret
+
+
+; Multiply part numbers together
+;
+; @param {string} rdi - pointer to string
+;
+; @returns {int}  rax - overlapping number count
+eval_row:
+        ; Zero, One or Two numbers
+        call        count_row
+        cmp         rax, 0
+        je          .r0
+        cmp         rax, 1
+        je          .r1
+        cmp         rax, 2
+        je          .r2
+
+        ;           Estimate row value
+.r0:
+        mov         rax, 1
+        ret
+.r1:
+        call        until_digit
+        call        scan_int
+        ret
+.r2:
+        call        scan_int
         imul        r8, rax
-        jmp         .l1
+
+        call        scan_int
+        imul        r8, rax
 
         mov         rax, r8
         ret
 
-; Multiply part numbers together
-eval_row:
-        mov         rax, 1
-        ret
 
 ; Count part numbers
 ;
@@ -270,44 +331,50 @@ to_digit:
         ret
 
 
-; Get a character
+; Move cursor to next * character
 ;
-; @param rsi - address of str
-; @param rdi - offset
-;
-; @returns rax - byte
-getchar:
-        movzx       rax, byte [rsi + rdi]
-        ret
-
-
+; @returns {void}
 until_cog:
-        mov         rcx, is_cog
+        mov         rdx, is_cog
         call        until
         ret
 
 
+; Iterate until function returns true or end of string
+;
+; Moves (rdi, rsi) pair to next valid parse
+;
+; @param {string}       rdi - string address
+; @param {int}          rsi - length of string
+; @param {char -> bool} rdx - address
+;
+; @returns {void}
 until:
+        xor         rax, rax
 .l1:
-        cmp         rdi, 0
+        cmp         rsi, 0
         jz          .done
 
-        push        rsi
-        movzx       rsi, byte [rsi]
-        call        rcx
-        pop         rsi
+        push        rdi
+        movzx       rdi, byte [rdi]
+        call        rdx
+        pop         rdi
         cmp         rax, 1
         je          .done
 
-        inc         rsi
-        dec         rdi
+        inc         rdi
+        dec         rsi
         jmp         .l1
 .done:
         ret
 
 
+; Check character is *
+;
+; @param {char}   dil - ASCII character
+; @returns {bool} rax - Match found
 is_cog:
-        cmp         sil, '*'
+        cmp         dil, '*'
         sete        al
         movzx       rax, al
         ret
