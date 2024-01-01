@@ -17,8 +17,8 @@ entry main
 main:
         ;           Scan int from arbitrary place
         mov         rdi, sample
-        mov         rsi, 4        ; Row length including \n
-        call        count_part_numbers
+        mov         rsi, sample_len
+        call        until_digit
         int3
 
         exit        0
@@ -336,6 +336,15 @@ to_digit:
 ; @returns {void}
 until_cog:
         mov         rdx, is_cog
+        call        until
+        ret
+
+
+; Move cursor to next [0-9] character
+;
+; @returns {void}
+until_digit:
+        mov         rdx, is_digit
         call        until
         ret
 
@@ -730,7 +739,7 @@ segment readable writable
 input file "input-3"
 input_len = $ - input
 
-sample db "11.", NEWLINE, \
-          "1.1", NEWLINE, \
-          ".11"
+sample db "...", NEWLINE, \
+          "..1", NEWLINE, \
+          ".23"
 sample_len = $ - sample
