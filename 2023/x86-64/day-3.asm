@@ -34,13 +34,48 @@ row_length:
         ret
 
 
-; Count square
+; Evaluate cog
+;
+; Compute value of cog. 
+; Exactly two part numbers. Product of those two numbers.
+;
+eval_cog:
+        call        count_part_numbers
+        cmp         rax, 2
+        je          .solve
+
+        ;           Default case
+        mov         rax, 0
+        ret
+
+.solve:
+        call        eval_part_numbers
+        ret
+
+
+; Multiply part numbers together
+eval_part_numbers:
+        mov         r8, 1
+.l1:
+        call        eval_row
+        imul        r8, rax
+        jmp         .l1
+
+        mov         rax, r8
+        ret
+
+; Multiply part numbers together
+eval_row:
+        mov         rax, 1
+        ret
+
+; Count part numbers
 ;
 ; @param {string} rdi - pointer to string
 ; @param {int}    rsi - row length
 ;
 ; @returns {int}  rax - number count
-count_square:
+count_part_numbers:
         xor         rcx, rcx
         xor         r9, r9
 .l1:
