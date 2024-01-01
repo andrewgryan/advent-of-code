@@ -15,12 +15,33 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        ;           Scan int from arbitrary place
-        mov         rdi, input
-        call        row_length
+        mov         rdi, sample
+        mov         rsi, sample_len
+
+        ;           Move str 5 places
+        add         rdi, 5
+        sub         rsi, 5
+
+        mov         rdx, 4                ; Row length
+        call        top_left
+        
         int3
 
         exit        0
+
+
+; Top-left
+;
+; @param {string} rdi - pointer to string
+; @param {string} rsi - string length
+; @param {string} rdx - row length
+;
+; @returns {void}
+top_left:
+        inc        rdx
+        sub        rdi, rdx
+        add        rsi, rdx
+        ret
 
 
 ; Row length
