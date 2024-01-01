@@ -19,6 +19,9 @@ main:
         mov         rdi, sample
         mov         rsi, sample_len
         call        until_digit
+
+        mov         rdx, sample
+        call        scan_int
         int3
 
         exit        0
@@ -239,6 +242,8 @@ count_row:
 
 
 ; Scan integer
+;
+; TODO: Refactor to use System V ABI
 ;
 ; Side effect: Changes r8 and r10 registers
 ;
@@ -740,6 +745,6 @@ input file "input-3"
 input_len = $ - input
 
 sample db "...", NEWLINE, \
-          "..1", NEWLINE, \
+          "..7", NEWLINE, \
           ".23"
 sample_len = $ - sample
