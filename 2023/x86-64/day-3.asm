@@ -15,8 +15,10 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        mov         rdi, example
-        mov         rsi, example_len
+        mov         rdi, input
+        mov         rsi, input_len
+        ; mov         rdi, example
+        ; mov         rsi, example_len
 
         call        solution_part_2
 
@@ -231,16 +233,23 @@ eval_row:
         call        scan_int
         ret
 .r2:
-        ; ; TODO: row[0]
-        ; call        scan_int
-        ; imul        r8, rax
+        mov         r8, 1
 
-        ; ; TODO: row[2]
-        ; call        scan_int
-        ; imul        r8, rax
+        ;           Number row[0]
+        call        scan_int
+        imul        r8, rax
 
-        ; mov         rax, r8
-        mov         rax, 1
+        ;           Number row[2]
+        push        rdi
+        push        rsi
+        add         rdi, 2
+        sub         rsi, 2
+        call        scan_int
+        pop         rsi
+        pop         rdi
+        imul        r8, rax
+
+        mov         rax, r8
         ret
 
 
