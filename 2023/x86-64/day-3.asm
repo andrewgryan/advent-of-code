@@ -145,7 +145,7 @@ eval_cog:
         ret
 
 .has_value:
-        mov         rsi, [.length]        ; Row length
+        mov         rsi, [.width]         ; Row length
         mov         rdx, [.origin]        ; String origin
         call        eval_part_numbers
         jmp         .done
@@ -227,7 +227,6 @@ eval_row:
         mov         rax, 1
         ret
 .r1:
-        int3
         call        until_digit
         call        scan_int
         ret
