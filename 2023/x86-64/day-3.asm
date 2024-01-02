@@ -15,13 +15,58 @@ NEWLINE = 0x0a
 segment readable executable
 entry main
 main:
-        mov         rdi, sample
-        mov         rsi, sample_len
-        
-        int3
+        mov         rdi, example
+        mov         rsi, example_len
 
+        call        solution_part_2
+
+        ;           Print answer
+        mov         rsi, rax
+        call        print_register
         exit        0
 
+
+solution_part_2:
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 32
+.address equ rbp
+.length equ rbp - 8
+.width equ rbp - 16
+.sum equ rbp - 24
+
+        mov         [.address], rdi
+        mov         [.length], rsi
+        mov         qword [.sum], 0
+
+        call        row_length
+        mov         qword [.width], rax
+
+.l1:
+        mov         rdi, [.address]
+        mov         rsi, [.length]
+        call        until_cog           ; Fast-forward to cog
+        mov         [.address], rdi
+        mov         [.length], rsi
+
+        cmp         qword [.length], 0  ; Check end of string
+        je          .d1
+
+        mov         rdi, [.address]
+        mov         rsi, qword [.length]
+        mov         rdx, qword [.width]
+        call        eval_cog
+
+        add         qword [.sum], rax   ; Sum part number
+        inc         qword [.address]    ; Increment str
+        dec         qword [.length]     ; Decrement len(str)
+        jmp         .l1
+
+.d1:
+        mov         rax, qword [.sum]
+        mov         rsp, rbp
+        pop         rbp
+        ret
 
 ; Top-left
 ;
@@ -31,9 +76,11 @@ main:
 ;
 ; @returns {void}
 top_left:
+        push       rdx
         inc        rdx
         sub        rdi, rdx
         add        rsi, rdx
+        pop        rdx
         ret
 
 
@@ -58,8 +105,16 @@ row_length:
 ; Compute value of cog. 
 ; Exactly two part numbers. Product of those two numbers.
 ;
+; @param {string} rdi - pointer to string
+; @param {int}    rsi - string length
+; @param {int}    rdx - row length
+;
 eval_cog:
+        call        top_left
+        xchg        rsi, rdx
         call        count_part_numbers
+        ret
+
         cmp         rax, 2
         je          .has_value
 
@@ -759,6 +814,9 @@ grid_height:
 segment readable writable
 input file "input-3"
 input_len = $ - input
+
+example file "example-3"
+example_len = $ - example
 
 sample db "a..", NEWLINE, \
           "b.7", NEWLINE, \
