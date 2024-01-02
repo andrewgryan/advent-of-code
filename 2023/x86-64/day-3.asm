@@ -30,11 +30,11 @@ solution_part_2:
         push        rbp
         mov         rbp, rsp
         sub         rsp, 40
-.origin equ rbp
-.address equ rbp - 8
-.length equ rbp - 16
-.width equ rbp - 24
-.sum equ rbp - 32
+        .origin     equ rbp - 1 * 8
+        .address    equ rbp - 2 * 8
+        .length     equ rbp - 3 * 8
+        .width      equ rbp - 4 * 8
+        .sum        equ rbp - 5 * 8
 
         mov         [.origin], rdi
         mov         [.address], rdi
@@ -116,12 +116,12 @@ row_length:
 eval_cog:
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 48
+        sub         rsp, 32
 
-        .address equ rsp
-        .length equ rsp + 8
-        .width equ rsp + 16
-        .origin equ rsp + 24
+        .address equ rbp - 1 * 8
+        .length  equ rbp - 2 * 8
+        .width   equ rbp - 3 * 8
+        .origin  equ rbp - 4 * 8
 
         mov         [.address], rdi
         mov         [.length], rsi
@@ -163,11 +163,11 @@ eval_part_numbers:
         mov         rbp, rsp
         sub         rsp, 40
 
-        .address equ rbp
-        .length equ rbp - 8
-        .origin equ rbp - 16
-        .index equ rbp - 24
-        .product equ rbp - 32
+        .address equ rbp - 1 * 8
+        .length  equ rbp - 2 * 8
+        .origin  equ rbp - 3 * 8
+        .index   equ rbp - 4 * 8
+        .product equ rbp - 5 * 8
 
         mov         [.address], rdi
         mov         [.length], rsi
