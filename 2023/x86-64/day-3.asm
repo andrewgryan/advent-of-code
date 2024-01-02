@@ -108,6 +108,7 @@ row_length:
 ; @param {string} rdi - pointer to string
 ; @param {int}    rsi - string length
 ; @param {int}    rdx - row length
+; @param {string} rcx - string origin
 ;
 eval_cog:
         call        top_left
@@ -122,8 +123,8 @@ eval_cog:
         ret
 
 .has_value:
-        ; call        eval_part_numbers
-        mov         rax, 1
+        mov         rdx, rcx
+        call        eval_part_numbers
         ret
 
 
@@ -131,6 +132,7 @@ eval_cog:
 ;
 ; @param {string} rdi - pointer to string
 ; @param {int}    rsi - row length
+; @param {string} rdx - string origin
 ;
 ; @returns {int}  rax - number product
 eval_part_numbers:
@@ -173,6 +175,8 @@ eval_part_numbers:
 ; Multiply part numbers together
 ;
 ; @param {string} rdi - pointer to string
+; @param {int}    rsi - length
+; @param {string} rdx - string origin
 ;
 ; @returns {int}  rax - overlapping number count
 eval_row:
@@ -194,9 +198,11 @@ eval_row:
         call        scan_int
         ret
 .r2:
+        ; TODO: row[0]
         call        scan_int
         imul        r8, rax
 
+        ; TODO: row[2]
         call        scan_int
         imul        r8, rax
 
@@ -314,34 +320,34 @@ count_row:
 
 ; Scan integer
 ;
-; TODO: Refactor to use System V ABI
+; TODO: Use stack more effectively
 ;
 ; Side effect: Changes r8 and r10 registers
 ;
-; @param {string} rsi - pointer to string
-; @param {int}    rdi - length
+; @param {string} rdi - pointer to string
+; @param {int}    rsi - length
 ; @param {string} rdx - string origin
 ;
 ; @returns {int}  rax - value under cursor
 scan_int:
         ;           Save arguments on stack
-        push        rsi
         push        rdi
+        push        rsi
 
         ; Scan to right
 .l1:
-        cmp         rdi, 0
+        cmp         rsi, 0
         je          .d1
 
-        push        rsi
-        movzx       rsi, byte [rsi]
+        push        rdi
+        movzx       rdi, byte [rdi]
         call        is_digit
-        pop         rsi
+        pop         rdi
         cmp         rax, 0
         je          .d1
 
-        inc         rsi
-        dec         rdi
+        inc         rdi
+        dec         rsi
         jmp         .l1
 
 .d1:
@@ -351,26 +357,26 @@ scan_int:
         mov         r10, 1           ; Power of 10
 .l2:
         ;           Move cursor left
-        dec         rsi              ; Move str pointer left
-        inc         rdi              ; Increase str length
+        dec         rdi              ; Move str pointer left
+        inc         rsi              ; Increase str length
 
         ;           Check inside string
-        cmp         rsi, rdx
+        cmp         rdi, rdx
         jb          .d2
 
         ;           Check character represents digit
-        push        rsi
-        movzx       rsi, byte [rsi]
+        push        rdi
+        movzx       rdi, byte [rdi]
         call        is_digit
-        pop         rsi
+        pop         rdi
         cmp         rax, 0
         je          .d2
 
         ;           Continue summation
-        push        rsi
-        movzx       rsi, byte [rsi]
+        push        rdi
+        movzx       rdi, byte [rdi]
         call        to_digit
-        pop         rsi
+        pop         rdi
 
         ;           Add next term to sum
         imul        rax, r10         ; rax = rax * (10 ** i)
@@ -385,8 +391,8 @@ scan_int:
         mov         rax, r8
 
         ;           Restore arguments from stack
-        pop         rdi
         pop         rsi
+        pop         rdi
         ret
 
 
