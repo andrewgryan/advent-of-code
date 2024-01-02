@@ -19,6 +19,8 @@ main:
         mov         rsi, input_len
         ; mov         rdi, example
         ; mov         rsi, example_len
+        ; mov         rdi, sample
+        ; mov         rsi, sample_len
 
         call        solution_part_2
 
@@ -236,10 +238,13 @@ eval_row:
         mov         r8, 1
 
         ;           Number row[0]
+        push        r8
         call        scan_int
+        pop         r8
         imul        r8, rax
 
         ;           Number row[2]
+        push        r8
         push        rdi
         push        rsi
         add         rdi, 2
@@ -247,6 +252,7 @@ eval_row:
         call        scan_int
         pop         rsi
         pop         rdi
+        pop         r8
         imul        r8, rax
 
         mov         rax, r8
@@ -867,7 +873,7 @@ input_len = $ - input
 example file "example-3"
 example_len = $ - example
 
-sample db "a..", NEWLINE, \
-          "b.7", NEWLINE, \
-          "c23"
+sample db ".100.25.", NEWLINE, \
+          "....*...", NEWLINE, \
+          "........"
 sample_len = $ - sample
