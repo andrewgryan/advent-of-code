@@ -29,12 +29,14 @@ main:
 solution_part_2:
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 32
-.address equ rbp
-.length equ rbp - 8
-.width equ rbp - 16
-.sum equ rbp - 24
+        sub         rsp, 40
+.origin equ rbp
+.address equ rbp - 8
+.length equ rbp - 16
+.width equ rbp - 24
+.sum equ rbp - 32
 
+        mov         [.origin], rdi
         mov         [.address], rdi
         mov         [.length], rsi
         mov         qword [.sum], 0
@@ -53,8 +55,9 @@ solution_part_2:
         je          .d1
 
         mov         rdi, [.address]
-        mov         rsi, qword [.length]
-        mov         rdx, qword [.width]
+        mov         rsi, [.length]
+        mov         rdx, [.width]
+        mov         rcx, [.origin]
         call        eval_cog
 
         add         qword [.sum], rax   ; Sum part number
@@ -111,6 +114,20 @@ row_length:
 ; @param {string} rcx - string origin
 ;
 eval_cog:
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 48
+
+        .address equ rsp
+        .length equ rsp + 8
+        .width equ rsp + 16
+        .origin equ rsp + 24
+
+        mov         [.address], rdi
+        mov         [.length], rsi
+        mov         [.width], rdx
+        mov         [.origin], rcx
+
         call        top_left
         xchg        rsi, rdx
         call        count_part_numbers
@@ -120,12 +137,18 @@ eval_cog:
 
         ;           Default case
         mov         rax, 0
+
+.done:
+        ;           Restore stack and base pointer
+        mov         rsp, rbp
+        pop         rbp
         ret
 
 .has_value:
-        mov         rdx, rcx
+        mov         rsi, [.length]        ; Row length
+        mov         rdx, [.origin]        ; String origin
         call        eval_part_numbers
-        ret
+        jmp         .done
 
 
 ; Multiply part numbers together
@@ -136,39 +159,49 @@ eval_cog:
 ;
 ; @returns {int}  rax - number product
 eval_part_numbers:
-        xor         rcx, rcx
-        xor         r9, 1
-.l1:
-        ;           Save registers on stack
-        push        rcx                     ; Loop index
-        push        rdi                     ; Address
-        push        rsi                     ; Row length
-        push        r9                      ; Product
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 40
 
+        .address equ rbp
+        .length equ rbp - 8
+        .origin equ rbp - 16
+        .index equ rbp - 24
+        .product equ rbp - 32
+
+        mov         [.address], rdi
+        mov         [.length], rsi
+        mov         [.origin], rdx
+        mov         qword [.index], 0
+        mov         qword [.product], 1
+.l1:
         ;           Move pointer to start of row
-        mov         rdx, rsi                ; Row length
-        mov         rsi, rcx                ; Row index
+        mov         rdi, [.address]
+        mov         rsi, [.index]           ; Row index
+        mov         rdx, [.length]          ; Row length
         call        row_position
 
         ;           Eval numbers on row
         mov         rdi, rax                ; Address
+        mov         rsi, [.length]
+        mov         rdx, [.origin]
         call        eval_row
-        pop         r9
 
         ;           Product numbers
-        add         r9, rax
-
-        pop         rsi
-        pop         rdi
+        imul        rax, qword [.product]
+        mov         [.product], rax
 
         ;           Next row index
-        pop         rcx
-        inc         rcx
-        cmp         rcx, 2
+        inc         qword [.index]
+        cmp         qword [.index], 2
         jle         .l1
 
-        ;           Move sum to return register
-        mov         rax, r9
+        ;           Move product to return register
+        mov         rax, [.product]
+
+        ;           Restore stack and base pointer
+        mov         rsp, rbp
+        pop         rbp
         ret
 
 
@@ -180,6 +213,8 @@ eval_part_numbers:
 ;
 ; @returns {int}  rax - overlapping number count
 eval_row:
+        mov         rax, 1
+        ret
         ; Zero, One or Two numbers
         call        count_row
         cmp         rax, 0
