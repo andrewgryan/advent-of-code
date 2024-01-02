@@ -113,7 +113,6 @@ eval_cog:
         call        top_left
         xchg        rsi, rdx
         call        count_part_numbers
-        ret
 
         cmp         rax, 2
         je          .has_value
@@ -123,7 +122,8 @@ eval_cog:
         ret
 
 .has_value:
-        call        eval_part_numbers
+        ; call        eval_part_numbers
+        mov         rax, 1
         ret
 
 
