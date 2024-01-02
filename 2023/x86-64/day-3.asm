@@ -213,8 +213,6 @@ eval_part_numbers:
 ;
 ; @returns {int}  rax - overlapping number count
 eval_row:
-        mov         rax, 1
-        ret
         ; Zero, One or Two numbers
         call        count_row
         cmp         rax, 0
@@ -229,19 +227,21 @@ eval_row:
         mov         rax, 1
         ret
 .r1:
+        int3
         call        until_digit
         call        scan_int
         ret
 .r2:
-        ; TODO: row[0]
-        call        scan_int
-        imul        r8, rax
+        ; ; TODO: row[0]
+        ; call        scan_int
+        ; imul        r8, rax
 
-        ; TODO: row[2]
-        call        scan_int
-        imul        r8, rax
+        ; ; TODO: row[2]
+        ; call        scan_int
+        ; imul        r8, rax
 
-        mov         rax, r8
+        ; mov         rax, r8
+        mov         rax, 1
         ret
 
 
