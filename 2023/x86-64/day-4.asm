@@ -11,13 +11,19 @@ main:
         mov        rdi, input
         mov        rsi, winners
         call       read_winners
+        int3
+
+        mov        rdi, input
+        mov        rsi, numbers
+        call       read_numbers
+        int3
 
         mov        rdi, winners
         call       encode_winners
+        int3
 
         ;          Apply bit-mask to confirm win
-        int3
-        mov        rdi, 73
+        movzx      rdi, byte [numbers]
         call       confirm
 
         exit       0
@@ -95,16 +101,37 @@ encode_byte:
 ; @param   {address} rdi - input text
 ; @param   {address} rsi - output data
 read_winners:
+        add         rdi, 10        ; Offset
+        mov         rdx, 10        ; Array length
+        call        read_array
+        ret
+
+
+; @param   {address} rdi - input text
+; @param   {address} rsi - output data
+read_numbers:
+        add         rdi, 42        ; Offset
+        mov         rdx, 25        ; Array length
+        call        read_array
+        ret
+
+
+; @param   {address} rdi - input text
+; @param   {address} rsi - output data
+; @param   {int}     rdx - array length
+read_array:
         ;          Prepare stack
         push       rbp
         mov        rbp, rsp
-        sub        rsp, 16
-        .input  equ rbp - 16
-        .output equ rbp - 8
+        sub        rsp, 32
+        .input  equ rbp - 3 * 8
+        .output equ rbp - 2 * 8
+        .length equ rbp - 1 * 8
 
         ;          Save arguments on stack
         mov        [.input], rdi
         mov        [.output], rsi
+        mov        [.length], rdx
 
         ;          Loop over numbers
         xor        rax, rax
@@ -114,15 +141,15 @@ read_winners:
         mov        rdx, [.input]
         imul       r8, rcx, 3
         add        rdx, r8                ; input + 3*i
-        movzx      rsi, byte [rdx + 10]
-        movzx      rdi, byte [rdx + 11]
+        movzx      rsi, byte [rdx]
+        movzx      rdi, byte [rdx + 1]
         call       to_number
         mov        rdx, [.output]
         add        rdx, rcx               ; output + i
         mov        [rdx], al
 
         inc        rcx
-        cmp        rcx, 10
+        cmp        rcx, [.length]
         jb         .l1
 
         ;          Restore stack
@@ -149,6 +176,7 @@ segment readable writable
 
 ; Data to hold scratch card information
 winners rb 10
+numbers rb 25
 lower rb 8
 upper rb 8
 
