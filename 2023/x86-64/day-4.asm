@@ -3,6 +3,9 @@ format ELF64 executable
 
 include "util.inc"
 
+LINE_LENGTH = 117
+NUMBER_OF_CARDS = 2 ; 198
+
 
 segment readable executable
 entry main
@@ -21,13 +24,12 @@ main:
         pop        rdi
 
         ;          Accumulate score
-        int3
         add        rdx, rax
 
         ;          Next card
-        add        rdi, 117
+        add        rdi, LINE_LENGTH
         inc        rcx
-        cmp        rcx, 198
+        cmp        rcx, NUMBER_OF_CARDS
         jb         .l1
 
         ;          Print result
@@ -56,7 +58,9 @@ play_scratchcard:
 
 
 check_numbers:
+        int3
         ;          Check numbers
+        xor        rax, rax
         xor        rcx, rcx
         xor        rdx, rdx
 .l1:
@@ -71,6 +75,9 @@ check_numbers:
         inc        rcx
         cmp        rcx, 25
         jb         .l1
+
+        mov        rax, rdx
+        ret
 
         ;          Double points logic
         cmp        rdx, 0
@@ -106,7 +113,14 @@ confirm:
         ret
 
 .lower:
-        mov        rax, 0
+        ;          Encode value to bit mask
+        call       encode_byte
+
+        ;          Compare to mask
+        mov        r8, rax
+        and        r8, qword [lower]
+        setnz      r8b
+        movzx      rax, r8b
         ret
 
 
