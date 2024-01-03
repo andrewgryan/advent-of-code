@@ -4,7 +4,7 @@ format ELF64 executable
 include "util.inc"
 
 LINE_LENGTH = 117
-NUMBER_OF_CARDS = 2 ; 198
+NUMBER_OF_CARDS = 198
 
 
 segment readable executable
@@ -58,7 +58,6 @@ play_scratchcard:
 
 
 check_numbers:
-        int3
         ;          Check numbers
         xor        rax, rax
         xor        rcx, rcx
@@ -75,9 +74,6 @@ check_numbers:
         inc        rcx
         cmp        rcx, 25
         jb         .l1
-
-        mov        rax, rdx
-        ret
 
         ;          Double points logic
         cmp        rdx, 0
