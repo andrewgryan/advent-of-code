@@ -7,32 +7,68 @@ include "util.inc"
 segment readable executable
 entry main
 main:
-        ;          Debug information
-        mov        rdi, upper
-        mov        rsi, lower
+        ;          Load scratch card
+        mov        rdi, input
+        mov        rsi, winners
+        call       read_winners
 
-        ;          100-bit mask encoding
-        mov        rcx, 72
-        call       encode
-        mov        rcx, 28
-        call       encode
-        mov        rcx, 41
-        call       encode
-        mov        rcx, 15
-        call       encode
-        mov        rcx, 98
-        call       encode
-        mov        rcx, 13
-        call       encode
+        mov        rdi, winners
+        call       encode_winners
+
+        ;          Apply bit-mask to confirm win
         int3
+        mov        rdi, 73
+        call       confirm
+
         exit       0
 
+confirm:
+        cmp        rdi, 50
+        jb         .lower
+
+.upper:
+        ;          Encode value to bit mask
+        sub        rdi, 50
+        call       encode_byte
+        add        rdi, 50
+
+        ;          Compare to mask
+        mov        r8, rax
+        and        r8, qword [upper]
+        setnz      r8b
+        movzx      rax, r8b
+        ret
+
+.lower:
+        mov        rax, 0
+        ret
+
+
+encode_winners:
+        ;          100-bit encode scratch card
+        xor        rcx, rcx
+.l1:
+        push       rdi
+        push       rcx
+        movzx      rdi, byte [rdi]
+        call       encode
+        pop        rcx
+        pop        rdi
+
+        inc        rdi
+        inc        rcx
+        cmp        rcx, 10
+        jb         .l1
+
+
+; @param {byte} rdi - Number [0-99]
 encode:
-        cmp        rcx, 50
+        cmp        rdi, 50
         jb         .lower
 .upper:
-        sub        rcx, 50
+        sub        rdi, 50
         call       encode_byte
+        add        rdi, 50
         or         qword [upper], rax
         ret
 .lower:
@@ -40,7 +76,10 @@ encode:
         or         qword [lower], rax
         ret
 
+
+; @param {byte} rdi - Number [0-49]
 encode_byte:
+        mov        rcx, rdi
         mov        rax, 1
 .l1:
         cmp        rcx, 8
@@ -53,8 +92,8 @@ encode_byte:
         ret
 
 
-; @param   {address} rsi - input text
-; @param   {address} rdi - output data
+; @param   {address} rdi - input text
+; @param   {address} rsi - output data
 read_winners:
         ;          Prepare stack
         push       rbp
@@ -64,10 +103,12 @@ read_winners:
         .output equ rbp - 8
 
         ;          Save arguments on stack
-        mov        [.input], rsi
-        mov        [.output], rdi
+        mov        [.input], rdi
+        mov        [.output], rsi
 
         ;          Loop over numbers
+        xor        rax, rax
+        xor        rdx, rdx
         xor        rcx, rcx
 .l1:
         mov        rdx, [.input]
