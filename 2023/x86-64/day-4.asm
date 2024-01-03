@@ -7,26 +7,75 @@ include "util.inc"
 segment readable executable
 entry main
 main:
-        ;          Load scratch card
+        ;          Loop over Cards
+        xor        rcx, rcx
         mov        rdi, input
-        mov        rsi, winners
-        call       read_winners
+.l1:
+        push       rdi
+        push       rcx
+        call       play_scratchcard
+        pop        rcx
+        pop        rdi
+
+        ;          Next card
+        add        rdi, 117
+        inc        rcx
+        cmp        rcx, 198
+        jb         .l1
         int3
-
-        mov        rdi, input
-        mov        rsi, numbers
-        call       read_numbers
-        int3
-
-        mov        rdi, winners
-        call       encode_winners
-        int3
-
-        ;          Apply bit-mask to confirm win
-        movzx      rdi, byte [numbers]
-        call       confirm
-
         exit       0
+
+
+; @params {address} rdi - Card
+play_scratchcard:
+        ;          Load scratch card
+        push       rdi
+        call       read_winners
+        pop        rdi
+
+        push       rdi
+        call       read_numbers
+        pop        rdi
+
+        push       rdi
+        call       encode_winners
+        call       check_numbers
+        pop        rdi
+        ret
+
+
+check_numbers:
+        ;          Check numbers
+        xor        rcx, rcx
+        xor        rdx, rdx
+.l1:
+        ;          Count winning numbers
+        push       rcx
+        push       rdx
+        movzx      rdi, byte [numbers + rcx]
+        call       confirm
+        pop        rdx
+        pop        rcx
+        add        rdx, rax
+        inc        rcx
+        cmp        rcx, 25
+        jb         .l1
+
+        ;          Double points logic
+        cmp        rdx, 0
+        je         .zero
+
+        ;          1, 2, 4, 8, ...
+        mov        cl, dl
+        dec        cl
+        mov        rax, 1
+        shl        rax, cl
+        ret
+
+.zero:
+        mov        rax, 0
+        ret
+
 
 confirm:
         cmp        rdi, 50
@@ -50,8 +99,12 @@ confirm:
         ret
 
 
+; 100-bit encode scratch card
 encode_winners:
-        ;          100-bit encode scratch card
+        ;          Reset 64-bit masks
+        mov        rdi, winners
+        mov        qword [upper], 0
+        mov        qword [lower], 0
         xor        rcx, rcx
 .l1:
         push       rdi
@@ -99,18 +152,18 @@ encode_byte:
 
 
 ; @param   {address} rdi - input text
-; @param   {address} rsi - output data
 read_winners:
         add         rdi, 10        ; Offset
+        mov         rsi, winners
         mov         rdx, 10        ; Array length
         call        read_array
         ret
 
 
 ; @param   {address} rdi - input text
-; @param   {address} rsi - output data
 read_numbers:
         add         rdi, 42        ; Offset
+        mov         rsi, numbers
         mov         rdx, 25        ; Array length
         call        read_array
         ret
@@ -162,12 +215,20 @@ read_array:
 ;
 ; @returns {byte} al - number between 0-99
 to_number:
+        xor        rax, rax
+        cmp        sil, ' '
+        je         .single
+
+        ;          First decimal place
         sub        sil, '0'
-        sub        dil, '0'
         movzx      rax, sil
         imul       rax, 10
-        add        al, dil
         add        sil, '0'
+
+        ;          Second decimal place
+.single:
+        sub        dil, '0'
+        add        al, dil
         add        dil, '0'
         ret
 
