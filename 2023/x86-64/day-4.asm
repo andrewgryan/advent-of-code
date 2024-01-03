@@ -9,20 +9,31 @@ entry main
 main:
         ;          Loop over Cards
         xor        rcx, rcx
+        xor        rdx, rdx
         mov        rdi, input
 .l1:
         push       rdi
         push       rcx
+        push       rdx
         call       play_scratchcard
+        pop        rdx
         pop        rcx
         pop        rdi
+
+        ;          Accumulate score
+        int3
+        add        rdx, rax
 
         ;          Next card
         add        rdi, 117
         inc        rcx
         cmp        rcx, 198
         jb         .l1
-        int3
+
+        ;          Print result
+        mov        rsi, rdx
+        call       print_register
+        
         exit       0
 
 
