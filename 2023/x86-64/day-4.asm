@@ -3,8 +3,9 @@ format ELF64 executable
 
 include "util.inc"
 
+MAX_WINNERS = 10
 LINE_LENGTH = 117
-NUMBER_OF_CARDS = 198
+NUMBER_OF_CARDS = 1  ; 198
 
 
 segment readable executable
@@ -54,6 +55,50 @@ play_scratchcard:
         call       encode_winners
         call       check_numbers
         pop        rdi
+
+        push       rdi
+        mov        rdi, rax
+        call       count_copies
+        pop        rdi
+        ret
+
+
+; @param {int} rdi - card matched numbers
+; @param {int} rsi - card index
+count_copies:
+
+        ;          Sum copies contributing to current card
+        xor        rcx, rcx
+        xor        rdx, rdx
+.l1:
+        cmp        rcx, [scores + rcx]
+        setbe      al
+        mov        r8, [copies + rcx]
+        imul       r8, rax
+        add        rdx, r8
+
+        inc        rcx
+        cmp        rcx, MAX_WINNERS
+        jb         .l1
+
+        ;          Save matches and copies for current position
+        mov        [copies], rax
+        mov        [score], rdi
+
+        ret
+
+
+; @param {int} rdi - number to modulo
+; @param {int} rsi - size
+mod:
+        mov        rax, rdi
+        cmp        rax, rsi
+        jb         .d1
+.l1:
+        sub        rax, rsi
+        cmp        rax, rsi
+        ja         .l1
+.d1:
         ret
 
 
@@ -75,6 +120,11 @@ check_numbers:
         cmp        rcx, 25
         jb         .l1
 
+        mov        rax, rdx
+        ret
+
+
+double_points:
         ;          Double points logic
         cmp        rdx, 0
         je         .zero
@@ -261,6 +311,9 @@ winners rb 10
 numbers rb 25
 lower rb 8
 upper rb 8
+
+copies rq MAX_WINNERS
+scores rb MAX_WINNERS
 
 input file "input-4"
 input_len = $ - input
