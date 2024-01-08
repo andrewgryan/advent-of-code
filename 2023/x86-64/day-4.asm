@@ -5,12 +5,14 @@ include "util.inc"
 
 MAX_WINNERS = 10
 LINE_LENGTH = 117
-NUMBER_OF_CARDS = 1  ; 198
+NUMBER_OF_CARDS = 3  ; 198
 
 
 segment readable executable
 entry main
 main:
+        call       reset_copies
+
         ;          Loop over Cards
         xor        rcx, rcx
         xor        rdx, rdx
@@ -19,6 +21,7 @@ main:
         push       rdi
         push       rcx
         push       rdx
+        mov        rsi, rcx
         call       play_scratchcard
         pop        rdx
         pop        rcx
@@ -40,8 +43,24 @@ main:
         exit       0
 
 
+reset_copies:
+        xor        rcx, rcx
+.l1:
+        mov        qword [copies + 8 * rcx], 0
+        inc        rcx
+        cmp        rcx, MAX_WINNERS
+        jb         .l1
+        ret
+
+
 ; @params {address} rdi - Card
+; @param {int}      rsi - Card index
 play_scratchcard:
+        push       rbp
+        mov        rbp, rsp
+        sub        rsp, 8
+        mov        qword [rbp - 8], rsi
+
         ;          Load scratch card
         push       rdi
         call       read_winners
@@ -58,48 +77,45 @@ play_scratchcard:
 
         push       rdi
         mov        rdi, rax
+        mov        rsi, qword [rbp - 8]
         call       count_copies
         pop        rdi
+
+        mov        rsp, rbp
+        pop        rbp
         ret
 
+; c: 1, 4, 9
+; s: 3, 5, ...
+;
+; c[i] = 1 + sum(s[j] * c[j]) where j < i
 
 ; @param {int} rdi - card matched numbers
 ; @param {int} rsi - card index
 count_copies:
-
         ;          Sum copies contributing to current card
         xor        rcx, rcx
-        xor        rdx, rdx
+        mov        rdx, 1                     ; Original copy
 .l1:
-        cmp        rcx, [scores + rcx]
-        setbe      al
-        mov        r8, [copies + rcx]
-        imul       r8, rax
-        add        rdx, r8
+        ;          TODO: Logic to accumulate cards
+        xor        r8, r8
+        mov        r8b, byte [scores + rcx]
+        mov        r9, qword [copies + 8 * rcx]
+        imul       r9, r8
+        add        rdx, r9
 
-        inc        rcx
-        cmp        rcx, MAX_WINNERS
+        inc        rcx                        ; Increment index
+        cmp        rcx, rsi                   ; Below Card index
         jb         .l1
 
-        ;          Save matches and copies for current position
-        mov        [copies], rax
-        mov        [score], rdi
+        ;          Save copies to array
+        mov        qword [copies + 8 * rsi], rdx
+        mov        byte [scores + 8 * rsi], dil
 
+        ;          Return copies
+        mov        rax, rdx
         ret
 
-
-; @param {int} rdi - number to modulo
-; @param {int} rsi - size
-mod:
-        mov        rax, rdi
-        cmp        rax, rsi
-        jb         .d1
-.l1:
-        sub        rax, rsi
-        cmp        rax, rsi
-        ja         .l1
-.d1:
-        ret
 
 
 check_numbers:
