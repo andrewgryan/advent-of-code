@@ -5,12 +5,14 @@ include "util.inc"
 
 MAX_WINNERS = 10
 LINE_LENGTH = 117
-NUMBER_OF_CARDS = 3  ; 198
+NUMBER_OF_CARDS = 5  ; 198
 
 
 segment readable executable
 entry main
 main:
+        mov        r10, scores
+
         call       reset_copies
 
         ;          Loop over Cards
@@ -85,10 +87,13 @@ play_scratchcard:
         pop        rbp
         ret
 
-; c: 1, 4, 9
-; s: 3, 5, ...
-;
-; c[i] = 1 + sum(s[j] * c[j]) where j < i
+; Card | Score | Copies
+;    1 | 3     | 1
+;    2 | 5     | 1*
+;    3 | 10    | 1*++
+;    4 | 7     | 1*++####
+;    5 | ..    | 1++####^^^^^^^
+
 
 ; @param {int} rdi - card matched numbers
 ; @param {int} rsi - card index
@@ -100,9 +105,14 @@ count_copies:
         ;          TODO: Logic to accumulate cards
         xor        r8, r8
         mov        r8b, byte [scores + rcx]
-        mov        r9, qword [copies + 8 * rcx]
-        imul       r9, r8
-        add        rdx, r9
+        mov        r9, rsi
+        sub        r9, rcx
+        cmp        r8, r9                     ; Score, Distance
+        seta       al
+
+        mov        r10, qword [copies + 8 * rcx]
+        imul       r10, rax
+        add        rdx, r10
 
         inc        rcx                        ; Increment index
         cmp        rcx, rsi                   ; Below Card index
@@ -110,7 +120,7 @@ count_copies:
 
         ;          Save copies to array
         mov        qword [copies + 8 * rsi], rdx
-        mov        byte [scores + 8 * rsi], dil
+        mov        byte [scores + rsi], dil
 
         ;          Return copies
         mov        rax, rdx
