@@ -5,13 +5,14 @@ include "util.inc"
 
 MAX_WINNERS = 10
 LINE_LENGTH = 117
-NUMBER_OF_CARDS = 5  ; 198
+NUMBER_OF_CARDS = 8; 198
 
 
 segment readable executable
 entry main
 main:
         mov        r10, scores
+        mov        r11, copies
 
         call       reset_copies
 
@@ -41,6 +42,7 @@ main:
         ;          Print result
         mov        rsi, rdx
         call       print_register
+        int3
         
         exit       0
 
@@ -50,7 +52,7 @@ reset_copies:
 .l1:
         mov        qword [copies + 8 * rcx], 0
         inc        rcx
-        cmp        rcx, MAX_WINNERS
+        cmp        rcx, NUMBER_OF_CARDS
         jb         .l1
         ret
 
@@ -87,14 +89,18 @@ play_scratchcard:
         pop        rbp
         ret
 
-; Card | Score | Copies
-;    1 | 3     | 1
-;    2 | 5     | 1*
-;    3 | 10    | 1*++
-;    4 | 7     | 1*++####
-;    5 | ..    | 1++####^^^^^^^
-
-
+; Card | Score | #   | Copies
+;    1 | 3     | 1   | 1
+;    2 | 5     | 2   | 1, 1
+;    3 | 10    | 4   | 1, 1, 2
+;    4 | 7     | 8   | 1, 1, 2, 4
+;    5 | 9     | 15  | 1,    2, 4, 8
+;    6 | 10    | 30  | 1,    2, 4, 8, 15
+;    7 | 10    | 60  | 1,    2, 4, 8, 15, 30
+;    8 | 5     | 118 | 1,       4, 8, 15, 30, 60
+; ----- -------  --
+; Total          238
+;
 ; @param {int} rdi - card matched numbers
 ; @param {int} rsi - card index
 count_copies:
@@ -102,17 +108,15 @@ count_copies:
         xor        rcx, rcx
         mov        rdx, 1                     ; Original copy
 .l1:
-        ;          TODO: Logic to accumulate cards
-        xor        r8, r8
-        mov        r8b, byte [scores + rcx]
-        mov        r9, rsi
-        sub        r9, rcx
-        cmp        r8, r9                     ; Score, Distance
-        seta       al
+        ;          Logic to accumulate cards
+        push       rsi                         ; Card index
+        sub        rsi, rcx                    ; Distance = Card index - loop index
+        cmp        sil, byte [scores + rcx]    ; Compare Score to Distance
+        setbe      al                          ; Accumulator = Score <= Distance
+        pop        rsi                         ; Card index
 
-        mov        r10, qword [copies + 8 * rcx]
-        imul       r10, rax
-        add        rdx, r10
+        imul       rax, qword [copies + 8 * rcx]
+        add        rdx, rax
 
         inc        rcx                        ; Increment index
         cmp        rcx, rsi                   ; Below Card index
@@ -338,8 +342,8 @@ numbers rb 25
 lower rb 8
 upper rb 8
 
-copies rq MAX_WINNERS
-scores rb MAX_WINNERS
+copies rq NUMBER_OF_CARDS
+scores rb NUMBER_OF_CARDS
 
 input file "input-4"
 input_len = $ - input
