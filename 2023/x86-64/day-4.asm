@@ -5,7 +5,7 @@ include "util.inc"
 
 MAX_WINNERS = 10
 LINE_LENGTH = 117
-NUMBER_OF_CARDS = 8; 198
+NUMBER_OF_CARDS = 198
 
 
 segment readable executable
@@ -42,10 +42,77 @@ main:
         ;          Print result
         mov        rsi, rdx
         call       print_register
-        int3
         
         exit       0
 
+
+example:
+        ; Example from puzzle description
+        ;
+        ; Card | Score | #   | Copies
+        ;    1 | 4     | 1   | 1
+        ;    2 | 2     | 2   | 1, 1,
+        ;    3 | 2     | 4   | 1, 1, 2
+        ;    4 | 1     | 8   | 1, 1, 2, 4
+        ;    5 | 0     | 14  | 1, 1,    4, 8
+        ;    6 | 0     | 1   | 1,
+        ; ----- -------  --
+        ; Total          30
+
+        xor        rcx, rcx
+
+        ;          Card 1
+        mov        rdi, 4
+        mov        rsi, 0
+        push       rcx
+        call       count_copies
+        pop        rcx
+        add        rcx, rax
+
+        ;          Card 2
+        mov        rdi, 2
+        mov        rsi, 1
+        push       rcx
+        call       count_copies
+        pop        rcx
+        add        rcx, rax
+
+        ;          Card 3
+        mov        rdi, 2
+        mov        rsi, 2
+        push       rcx
+        call       count_copies
+        pop        rcx
+        add        rcx, rax
+
+        ;          Card 4
+        mov        rdi, 1
+        mov        rsi, 3
+        push       rcx
+        call       count_copies
+        pop        rcx
+        add        rcx, rax
+
+        ;          Card 5
+        mov        rdi, 0
+        mov        rsi, 4
+        push       rcx
+        call       count_copies
+        pop        rcx
+        add        rcx, rax
+
+        ;          Card 6
+        mov        rdi, 0
+        mov        rsi, 5
+        push       rcx
+        call       count_copies
+        pop        rcx
+        add        rcx, rax
+
+        ;          Print result
+        mov        rsi, rcx
+        call       print_register
+        exit       0
 
 reset_copies:
         xor        rcx, rcx
@@ -89,6 +156,8 @@ play_scratchcard:
         pop        rbp
         ret
 
+
+; Puzzle input
 ; Card | Score | #   | Copies
 ;    1 | 3     | 1   | 1
 ;    2 | 5     | 2   | 1, 1
@@ -109,6 +178,7 @@ count_copies:
         mov        rdx, 1                     ; Original copy
 .l1:
         ;          Logic to accumulate cards
+        xor        rax, rax
         push       rsi                         ; Card index
         sub        rsi, rcx                    ; Distance = Card index - loop index
         cmp        sil, byte [scores + rcx]    ; Compare Score to Distance
