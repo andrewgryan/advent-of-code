@@ -22,18 +22,19 @@ seed_to_soil:
         push        rbp
         mov         rbp, rsp
         sub         rsp, 8
-        mov         qword [rbp - 8], rdi ; Number
+        mov         qword [rbp - 8], rdi               ; Number
 
         ;           Range check
-        mov         rdi, qword [rbp - 8] ; Number
-        mov         rsi, 50              ; Source range start
-        mov         rdx, 48              ; Range length
+        mov         rdi, qword [rbp - 8]               ; Number
+        mov         rsi, qword [seed_to_soil_map + 8]  ; Source range start
+        mov         rdx, qword [seed_to_soil_map + 16] ; Range length
         call        in_range
         cmp         al, 1
         je          .apply
 
         ;           Default case
-        mov         rax, qword [rbp - 8] ; Number
+        mov         rdi, qword [rbp - 8]               ; Number
+        mov         rax, rdi                           ; Number
 
 .return:
         mov         rsp, rbp
@@ -41,9 +42,9 @@ seed_to_soil:
         ret
 
 .apply:
-        mov         rdi, qword [rbp - 8] ; Number
-        mov         rsi, 50              ; Source range start
-        mov         rdx, 52              ; Destination range start
+        mov         rdi, qword [rbp - 8]               ; Number
+        mov         rsi, qword [seed_to_soil_map + 8]  ; Source range start
+        mov         rdx, qword [seed_to_soil_map]      ; Destination range start
         call        apply_range
         jmp         .return
 
@@ -82,3 +83,4 @@ apply_range:
 
 
 segment readable writable
+seed_to_soil_map dq 52, 50, 48
