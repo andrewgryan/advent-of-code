@@ -21,20 +21,35 @@ main:
 seed_to_soil:
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 8
-        mov         qword [rbp - 8], rdi               ; Number
+        sub         rsp, 16
+        .number equ rbp - 1 * 8
+        .range  equ rbp - 2 * 8
+        mov         qword [.number], rdi             ; Number
+        mov         qword [.range], seed_to_soil_map ; Range address
+
+        mov         rcx, 0
+.l1:
+        ;           Next range
+        xor         r8, r8
+        imul        r8, rcx, 24              ; r8 = i * 24 bytes
+        add         qword [.range], r8       ; Address += i * 24 bytes
 
         ;           Range check
-        mov         rdi, qword [rbp - 8]               ; Number
-        mov         rsi, qword [seed_to_soil_map + 8]  ; Source range start
-        mov         rdx, qword [seed_to_soil_map + 16] ; Range length
+        mov         r8, qword [.range]       ; Range address
+        mov         rdi, qword [rbp - 8]     ; Number
+        mov         rsi, qword [r8 + 1 * 8]  ; Source range start
+        mov         rdx, qword [r8 + 2 * 8]  ; Range length
         call        in_range
         cmp         al, 1
         je          .apply
 
+        inc         rcx
+        cmp         rcx, 2
+        jb          .l1
+
         ;           Default case
-        mov         rdi, qword [rbp - 8]               ; Number
-        mov         rax, rdi                           ; Number
+        mov         rdi, qword [.number]     ; Number
+        mov         rax, rdi                 ; Number
 
 .return:
         mov         rsp, rbp
@@ -42,9 +57,10 @@ seed_to_soil:
         ret
 
 .apply:
-        mov         rdi, qword [rbp - 8]               ; Number
-        mov         rsi, qword [seed_to_soil_map + 8]  ; Source range start
-        mov         rdx, qword [seed_to_soil_map]      ; Destination range start
+        mov         r8, qword [.range]       ; Range address
+        mov         rdi, qword [.number]     ; Number
+        mov         rsi, qword [r8 + 8]      ; Source range start
+        mov         rdx, qword [r8]          ; Destination range start
         call        apply_range
         jmp         .return
 
@@ -83,4 +99,4 @@ apply_range:
 
 
 segment readable writable
-seed_to_soil_map dq 52, 50, 48
+seed_to_soil_map dq 50, 98, 2, 52, 50, 48
