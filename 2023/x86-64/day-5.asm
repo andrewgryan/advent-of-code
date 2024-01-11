@@ -9,6 +9,12 @@ entry main
 main:
         mov         rdi, 79
         call        seed_to_soil
+        int3
+
+        mov         rdi, 9
+        call        seed_to_soil
+        int3
+
         exit        0
 
 
@@ -18,19 +24,29 @@ seed_to_soil:
         sub         rsp, 8
         mov         qword [rbp - 8], rdi ; Number
 
+        ;           Range check
         mov         rdi, qword [rbp - 8] ; Number
         mov         rsi, 50              ; Source range start
         mov         rdx, 48              ; Range length
         call        in_range
+        cmp         al, 1
+        je          .apply
 
+        ;           Default case
+        mov         rax, qword [rbp - 8] ; Number
+
+.return:
+        mov         rsp, rbp
+        pop         rbp
+        ret
+
+.apply:
         mov         rdi, qword [rbp - 8] ; Number
         mov         rsi, 50              ; Source range start
         mov         rdx, 52              ; Destination range start
         call        apply_range
+        jmp         .return
 
-        mov         rsp, rbp
-        pop         rbp
-        ret
 
 
 ; Range start <= N < range start + length
@@ -39,7 +55,6 @@ seed_to_soil:
 ; @param {int} rsi - source range start
 ; @param {int} rdx - range length
 in_range:
-        int3
         ;          range start <= N
         xor        rax, rax
         cmp        rdi, rsi
