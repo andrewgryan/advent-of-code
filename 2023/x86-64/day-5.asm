@@ -36,11 +36,14 @@ soil_to_fertilizer:
 apply_map:
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 16
+        sub         rsp, 3 * 8
         .number equ rbp - 1 * 8
         .range  equ rbp - 2 * 8
-        mov         qword [.number], rdi             ; Number
-        mov         qword [.range], seed_to_soil_map ; Range address
+        .length equ rbp - 3 * 8
+        ; TODO: Use the length of the Map to loop
+        mov         qword [.number], rdi     ; Number
+        mov         qword [.range], rsi      ; Range address
+        mov         qword [.length], rsi     ; Length of Map
 
         mov         rcx, 0
 .l1:
@@ -114,5 +117,5 @@ apply_range:
 
 
 segment readable writable
-seed_to_soil_map dq 50, 98, 2, 52, 50, 48
-soil_to_fertilizer_map dq 0, 15, 37, 37, 52, 2, 39, 0, 15
+seed_to_soil_map dq 2, 50, 98, 2, 52, 50, 48
+soil_to_fertilizer_map dq 3, 0, 15, 37, 37, 52, 2, 39, 0, 15
