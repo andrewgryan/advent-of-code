@@ -7,18 +7,33 @@ include "util.inc"
 segment readable executable
 entry main
 main:
-        mov         rdi, 79
+        mov         rdi, 14
         call        seed_to_soil
-        int3
 
-        mov         rdi, 9
-        call        seed_to_soil
+        mov         rdi, rax
+        call        soil_to_fertilizer
         int3
 
         exit        0
 
 
+; @param {int}  rdi - Number
 seed_to_soil:
+        mov         rsi, seed_to_soil_map
+        call        apply_map
+        ret
+
+
+; @param {int}  rdi - Number
+soil_to_fertilizer:
+        mov         rsi, soil_to_fertilizer_map
+        call        apply_map
+        ret
+
+
+; @param {int}  rdi - Number
+; @param {*map} rsi - address of Map
+apply_map:
         push        rbp
         mov         rbp, rsp
         sub         rsp, 16
@@ -100,3 +115,4 @@ apply_range:
 
 segment readable writable
 seed_to_soil_map dq 50, 98, 2, 52, 50, 48
+soil_to_fertilizer_map dq 0, 15, 37, 37, 52, 2, 39, 0, 15
