@@ -39,19 +39,20 @@ seed_to_soil:
 ; @param {int} rsi - source range start
 ; @param {int} rdx - range length
 in_range:
+        int3
         ;          range start <= N
         xor        rax, rax
         cmp        rdi, rsi
         setae      al
 
         ;          Number < range start + length
-        xor        rdx, rdx
+        xor        r8, r8
         sub        rdi, rsi
         cmp        rdi, rdx
-        setb       dl
+        setb       r8b
 
         ;          Range start <= N < range start + length
-        and        al, dl
+        and        al, r8b
         ret
 
 
