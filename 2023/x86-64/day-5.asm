@@ -8,6 +8,12 @@ segment readable executable
 entry main
 main:
         mov         rdi, 14
+        call        seed_to_location
+        int3
+
+        exit        0
+
+seed_to_location:
         call        seed_to_soil
         mov         rdi, rax
         call        soil_to_fertilizer
@@ -21,9 +27,7 @@ main:
         call        temperature_to_humidity
         mov         rdi, rax
         call        humidity_to_location
-        int3
-
-        exit        0
+        ret
 
 
 ; @param {int}  rdi - Number
