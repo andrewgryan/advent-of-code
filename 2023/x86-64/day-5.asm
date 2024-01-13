@@ -8,7 +8,19 @@ segment readable executable
 entry main
 main:
         mov         rdi, 14
+        call        seed_to_soil
+        mov         rdi, rax
         call        soil_to_fertilizer
+        mov         rdi, rax
+        call        fertilizer_to_water
+        mov         rdi, rax
+        call        water_to_light
+        mov         rdi, rax
+        call        light_to_temperature
+        mov         rdi, rax
+        call        temperature_to_humidity
+        mov         rdi, rax
+        call        humidity_to_location
         int3
 
         exit        0
@@ -27,6 +39,35 @@ soil_to_fertilizer:
         call        apply_map
         ret
 
+; @param {int}  rdi - Number
+fertilizer_to_water:
+        mov         rsi, fertilizer_to_water_map
+        call        apply_map
+        ret
+
+; @param {int}  rdi - Number
+water_to_light:
+        mov         rsi, water_to_light_map
+        call        apply_map
+        ret
+
+; @param {int}  rdi - Number
+light_to_temperature:
+        mov         rsi, light_to_temperature_map
+        call        apply_map
+        ret
+
+; @param {int}  rdi - Number
+temperature_to_humidity:
+        mov         rsi, temperature_to_humidity_map
+        call        apply_map
+        ret
+
+; @param {int}  rdi - Number
+humidity_to_location:
+        mov         rsi, humidity_to_location_map
+        call        apply_map
+        ret
 
 ; @param {int}  rdi - Number
 ; @param {*map} rsi - address of Map
@@ -120,3 +161,21 @@ soil_to_fertilizer_map dq 3, \
         0, 15, 37, \
         37, 52, 2, \
         39, 0, 15
+fertilizer_to_water_map dq 4, \
+        49, 53, 8, \
+        0, 11, 42, \
+        42, 0, 7, \
+        57, 7, 4 
+water_to_light_map dq 2, \
+        88, 18, 7, \
+        18, 25, 70
+light_to_temperature_map dq 3, \
+        45, 77, 23, \
+        81, 45, 19, \
+        68, 64, 13
+temperature_to_humidity_map dq 2, \
+        0, 69, 1, \
+        1, 0, 69
+humidity_to_location_map dq 2, \
+        60, 56, 37, \
+        56, 93, 4
