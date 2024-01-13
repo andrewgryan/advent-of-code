@@ -8,9 +8,6 @@ segment readable executable
 entry main
 main:
         mov         rdi, 14
-        call        seed_to_soil
-
-        mov         rdi, rax
         call        soil_to_fertilizer
         int3
 
@@ -42,27 +39,27 @@ apply_map:
         .length equ rbp - 3 * 8
         ; TODO: Use the length of the Map to loop
         mov         qword [.number], rdi     ; Number
+        mov         r8, qword [rsi]          ; Length of Map
+        mov         qword [.length], r8      ; Length of Map
+        add         rsi, 8
         mov         qword [.range], rsi      ; Range address
-        mov         qword [.length], rsi     ; Length of Map
 
         mov         rcx, 0
 .l1:
-        ;           Next range
-        xor         r8, r8
-        imul        r8, rcx, 24              ; r8 = i * 24 bytes
-        add         qword [.range], r8       ; Address += i * 24 bytes
-
         ;           Range check
         mov         r8, qword [.range]       ; Range address
-        mov         rdi, qword [rbp - 8]     ; Number
+        mov         rdi, qword [.number]     ; Number
         mov         rsi, qword [r8 + 1 * 8]  ; Source range start
         mov         rdx, qword [r8 + 2 * 8]  ; Range length
         call        in_range
         cmp         al, 1
         je          .apply
 
+        ;           Next range
+        add         qword [.range], 24       ; Address += 24 bytes
+
         inc         rcx
-        cmp         rcx, 2
+        cmp         rcx, qword [.length]
         jb          .l1
 
         ;           Default case
@@ -97,8 +94,8 @@ in_range:
 
         ;          Number < range start + length
         xor        r8, r8
-        sub        rdi, rsi
-        cmp        rdi, rdx
+        add        rsi, rdx
+        cmp        rdi, rsi
         setb       r8b
 
         ;          Range start <= N < range start + length
@@ -117,5 +114,9 @@ apply_range:
 
 
 segment readable writable
+; destination range start, source range start, range length
 seed_to_soil_map dq 2, 50, 98, 2, 52, 50, 48
-soil_to_fertilizer_map dq 3, 0, 15, 37, 37, 52, 2, 39, 0, 15
+soil_to_fertilizer_map dq 3, \
+        0, 15, 37, \
+        37, 52, 2, \
+        39, 0, 15
