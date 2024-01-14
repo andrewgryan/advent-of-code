@@ -1,17 +1,149 @@
 format ELF64 executable
 
 
+MAX_MAP_SIZE = 256
+
+
 include "util.inc"
+include "parsers.asm"
 
 
 segment readable executable
 entry main
 main:
-        mov         rdi, 14
-        call        seed_to_location
-        int3
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, seed_to_soil_label
+        mov         rcx, seed_to_soil_label_len
+        mov         r8, seed_to_soil_memory
+        call        load_map
 
         exit        0
+
+
+; Load a map
+;
+; @param   {string} rdi - input string address
+; @param   {int}    rsi - input string length
+; @param   {string} rdx - label string address
+; @param   {int}    rcx - label string length
+; @param   {Map}    r8  - output memory address
+; @returns {bool}   rax - flag indicating success
+load_map:
+        ;           TODO: search input string for map name
+        push        r8
+        call        after_prefix
+        pop         r8
+        int3
+
+        .out equ r8
+        mov         qword [.out], 1         ; Map length
+        mov         qword [.out + 1 * 8], 2 ; Destination range start
+        mov         qword [.out + 2 * 8], 3 ; Source range start
+        mov         qword [.out + 3 * 8], 4 ; Range length
+        ret
+
+
+; Fast-forward to after prefix
+;
+; @param   {string} rdi - input string address
+; @param   {int}    rsi - input string length
+; @param   {string} rdx - prefix string address
+; @param   {int}    rcx - prefix string length
+after_prefix:
+        .str     equ rbp - 1 * 8
+        .str_len equ rbp - 2 * 8
+        .pre     equ rbp - 3 * 8
+        .pre_len equ rbp - 4 * 8
+
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 4 * 8
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
+        mov         qword [.pre], rdx
+        mov         qword [.pre_len], rcx
+
+.l1:
+        call        match_prefix
+        cmp         rax, 1
+        je          .found
+
+        inc         rdi
+        dec         rsi
+        jmp         .l1
+
+        ;           No match found, restore pointer(s)
+        mov         rdi, qword [.str]
+        mov         rsi, qword [.str_len]
+        mov         rax, 0
+.return:
+        mov         rsp, rbp
+        pop         rbp
+        ret
+.found:
+        ;           Move pointer to after match
+        add         rdi, qword [.pre_len]
+        sub         rsi, qword [.pre_len]
+        jmp         .return
+
+
+match_prefix:
+        .str     equ rbp - 1 * 8
+        .str_len equ rbp - 2 * 8
+        .pre     equ rbp - 3 * 8
+        .pre_len equ rbp - 4 * 8
+
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 4 * 8
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
+        mov         qword [.pre], rdx
+        mov         qword [.pre_len], rcx
+
+.l1:
+        ;           End of prefix
+        cmp         rcx, 0
+        je          .found
+
+        ;           End of string
+        cmp         rsi, 0
+        je          .fail
+
+        ;           Compare bytes
+        movzx       r8, byte [rdi]
+        movzx       r9, byte [rdx]
+        cmp         r8b, r9b
+        jne         .fail
+
+        ;           Next bytes
+        inc         rdi
+        dec         rsi
+        inc         rdx
+        dec         rcx
+        jmp         .l1
+
+
+.return:
+        ;           Restore pointer(s)
+        mov         rdi, qword [.str]
+        mov         rsi, qword [.str_len]
+        mov         rdx, qword [.pre]
+        mov         rcx, qword [.pre_len]
+        mov         rsp, rbp
+        pop         rbp
+        ret
+
+.fail:
+        mov         rax, 0
+        jmp         .return
+
+.found:
+        mov         rax, 1
+        jmp         .return
+
+
 
 seed_to_location:
         call        seed_to_soil
@@ -159,6 +291,14 @@ apply_range:
 
 
 segment readable writable
+
+input file "input-5"
+input_len = $ - input
+
+seed_to_soil_label db "seed-to-soil map:", 0xA
+seed_to_soil_label_len = $ - seed_to_soil_label
+seed_to_soil_memory rq MAX_MAP_SIZE
+
 ; destination range start, source range start, range length
 seed_to_soil_map dq 2, 50, 98, 2, 52, 50, 48
 soil_to_fertilizer_map dq 3, \
