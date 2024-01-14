@@ -180,6 +180,7 @@ parse_number_safe:
         jmp         .l1
 .d1:
         ;           Save length
+        dec         qword [.i]
         mov         r8, qword [.i]
         mov         qword [.n], r8
         
@@ -189,10 +190,11 @@ parse_number_safe:
         mov         rdx, 1
 .l2:
         cmp         qword [.i], 0
-        je          .d2
+        jl          .d2
 
-        mov         r8, qword [.i]
-        movzx       rdi, byte [.str + r8]
+        mov         r8, qword [.str]
+        add         r8, qword [.i]
+        movzx       rdi, byte [r8]
         call        to_digit
         imul        rax, rdx        ; times power of 10
         add         rcx, rax        ; add to sum
