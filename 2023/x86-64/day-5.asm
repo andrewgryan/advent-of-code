@@ -36,6 +36,9 @@ load_map:
         pop         r8
         int3
 
+        call        parse_number_safe
+        int3
+
         .out equ r8
         mov         qword [.out], 1         ; Map length
         mov         qword [.out + 1 * 8], 2 ; Destination range start
@@ -144,6 +147,82 @@ match_prefix:
         jmp         .return
 
 
+; @param rdi {string} - String address
+; @param rsi {int}    - String length
+parse_number_safe:
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 4 * 8
+        .str        equ rbp - 1 * 8
+        .len        equ rbp - 2 * 8
+        .i          equ rbp - 3 * 8
+        .n          equ rbp - 4 * 8
+        mov         qword [.str], rdi
+        mov         qword [.len], rsi
+        mov         qword [.i], 0
+        mov         qword [.n], 0
+
+        ;           Search left to right
+        mov         rdx, qword [.str]
+        mov         rcx, qword [.len]
+.l1:
+        cmp         rcx, 0
+        je          .d2
+
+        movzx       rdi, byte [rdx]
+        call        is_digit
+        cmp         al, 1
+        jne         .d1
+
+        inc         qword [.i]
+        inc         rdx
+        dec         rcx
+        jmp         .l1
+.d1:
+        ;           Save length
+        mov         r8, qword [.i]
+        mov         qword [.n], r8
+        
+        ;           Sum right to left
+        xor         rax, rax
+        xor         rcx, rcx
+        mov         rdx, 1
+.l2:
+        cmp         qword [.i], 0
+        je          .d2
+
+        mov         r8, qword [.i]
+        movzx       rdi, byte [.str + r8]
+        call        to_digit
+        imul        rax, rdx        ; times power of 10
+        add         rcx, rax        ; add to sum
+        imul        rdx, 10
+
+        dec         qword [.i]
+        jmp         .l2
+.d2:
+
+        mov         rax, rcx
+
+        mov         rsp, rbp
+        pop         rbp
+        ret
+
+
+; @param rdi - ASCII character
+is_digit:
+        call       to_digit
+        cmp        al, 9
+        setna      al
+        ret
+
+
+; @param rdi - ASCII character [0-9]
+to_digit:
+        movzx      rax, dil
+        sub        al, '0'
+        ret
+
 
 seed_to_location:
         call        seed_to_soil
@@ -214,7 +293,7 @@ apply_map:
         .number equ rbp - 1 * 8
         .range  equ rbp - 2 * 8
         .length equ rbp - 3 * 8
-        ; TODO: Use the length of the Map to loop
+        ;           Use the length of the Map to loop
         mov         qword [.number], rdi     ; Number
         mov         r8, qword [rsi]          ; Length of Map
         mov         qword [.length], r8      ; Length of Map
