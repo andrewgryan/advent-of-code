@@ -30,20 +30,84 @@ main:
 ; @param   {Map}    r8  - output memory address
 ; @returns {bool}   rax - flag indicating success
 load_map:
-        ;           TODO: search input string for map name
-        push        r8
+        .str        equ rbp - 1 * 8
+        .str_len    equ rbp - 2 * 8
+        .label      equ rbp - 3 * 8
+        .label_len  equ rbp - 4 * 8
+        .map        equ rbp - 5 * 8
+
+        int3
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 5 * 8
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
+        mov         qword [.label], rdx
+        mov         qword [.label_len], rcx
+        mov         qword [.map], r8
+
+        ;           Move to start of Map data
         call        after_prefix
-        pop         r8
-        int3
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
 
+        ;           Load range(s)
+        mov         r8, qword [.map]
+        mov         qword [r8], 0
+        jmp         .l2
+.l1:
+        ;           Destination range start
+        mov         rdi, qword [.str]
+        mov         rsi, qword [.str_len]
         call        parse_number_safe
-        int3
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
+        mov         r8, qword [.map]
+        mov         qword [r8 + 1 * 8], rax
 
-        .out equ r8
-        mov         qword [.out], 1         ; Map length
-        mov         qword [.out + 1 * 8], 2 ; Destination range start
-        mov         qword [.out + 2 * 8], 3 ; Source range start
-        mov         qword [.out + 3 * 8], 4 ; Range length
+        ;           Skip space
+        inc         qword [.str]
+        dec         qword [.str_len]
+
+        ;           Source range start
+        mov         rdi, qword [.str]
+        mov         rsi, qword [.str_len]
+        call        parse_number_safe
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
+        mov         r8, qword [.map]
+        mov         qword [r8 + 2 * 8], rax
+
+        ;           Skip space
+        inc         qword [.str]
+        dec         qword [.str_len]
+
+        ;           Range length
+        mov         rdi, qword [.str]
+        mov         rsi, qword [.str_len]
+        call        parse_number_safe
+        mov         qword [.str], rdi
+        mov         qword [.str_len], rsi
+        mov         r8, qword [.map]
+        mov         qword [r8 + 3 * 8], rax
+
+        ;           Skip newline
+        inc         qword [.str]
+        dec         qword [.str_len]
+
+        ;           Increase Map length by 1
+        mov         r8, qword [.map]
+        inc         qword [r8]
+.l2:
+        ;           Check next char is a digit
+        mov         rdi, qword [.str]
+        movzx       rdi, byte [rdi]
+        call        is_digit
+        cmp         rax, 1
+        je          .l1
+
+        mov         rsp, rbp
+        pop         rbp
         ret
 
 
@@ -204,7 +268,15 @@ parse_number_safe:
         jmp         .l2
 .d2:
 
+        ;           Return value
         mov         rax, rcx
+
+        ;           Align str to end of number
+        inc         qword [.n]         ; TODO: understand why
+        mov         rdi, qword [.str]
+        add         rdi, qword [.n]
+        mov         rsi, qword [.str_len]
+        sub         rsi, qword [.n]
 
         mov         rsp, rbp
         pop         rbp
