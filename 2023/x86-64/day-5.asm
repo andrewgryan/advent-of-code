@@ -1,6 +1,7 @@
 format ELF64 executable
 
 
+MAX_SEEDS = 20
 MAX_MAP_SIZE = 256
 
 
@@ -11,15 +12,101 @@ include "parsers.asm"
 segment readable executable
 entry main
 main:
+        mov         r10, seeds        ; DEBUG: seeds
+        call        load_seeds
+        ; call        load_maps
+
+        ; mov         rdi, 14
+        ; call        seed_to_location
+        int3
+        exit        0
+
+
+load_seeds:
+        ;           Move to seeds: section
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, seeds_label
+        mov         rcx, seeds_label_len
+        call        after_prefix
+
+        ;           Load each seed
+        xor         rcx, rcx
+        jmp         .l2
+.l1:
+        ;           Parse seed
+        push        rcx
+        call        parse_number_safe
+        pop         rcx
+        mov         qword [seeds + rcx * 8], rax
+
+        ;           Skip space
+        inc         rdi
+        dec         rsi
+
+        ;           Index counter
+        inc         rcx
+.l2:
+        push        rdi
+        movzx       rdi, byte [rdi]
+        call        is_digit
+        pop         rdi
+        cmp         rax, 1
+        je          .l1
+
+        ret
+
+
+load_maps:
         mov         rdi, input
         mov         rsi, input_len
         mov         rdx, seed_to_soil_label
         mov         rcx, seed_to_soil_label_len
         mov         r8, seed_to_soil_map
         call        load_map
-        int3
 
-        exit        0
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, soil_to_fertilizer_label
+        mov         rcx, soil_to_fertilizer_label_len
+        mov         r8, soil_to_fertilizer_map
+        call        load_map
+
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, fertilizer_to_water_label
+        mov         rcx, fertilizer_to_water_label_len
+        mov         r8, fertilizer_to_water_map
+        call        load_map
+
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, water_to_light_label
+        mov         rcx, water_to_light_label_len
+        mov         r8, water_to_light_map
+        call        load_map
+
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, light_to_temperature_label
+        mov         rcx, light_to_temperature_label_len
+        mov         r8, light_to_temperature_map
+        call        load_map
+
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, temperature_to_humidity_label
+        mov         rcx, temperature_to_humidity_label_len
+        mov         r8, temperature_to_humidity_map
+        call        load_map
+
+        mov         rdi, input
+        mov         rsi, input_len
+        mov         rdx, humidity_to_location_label
+        mov         rcx, humidity_to_location_label_len
+        mov         r8, humidity_to_location_map
+        call        load_map
+        ret
 
 
 ; Load a map
@@ -452,6 +539,10 @@ apply_range:
 
 
 segment readable writable
+
+seeds dq MAX_SEEDS
+seeds_label db "seeds: "
+seeds_label_len = $ - seeds_label
 
 input file "example-5"  ; change to input-5 to solve puzzle
 input_len = $ - input
