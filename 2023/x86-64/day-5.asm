@@ -15,8 +15,9 @@ main:
         mov         rsi, input_len
         mov         rdx, seed_to_soil_label
         mov         rcx, seed_to_soil_label_len
-        mov         r8, seed_to_soil_memory
+        mov         r8, seed_to_soil_map
         call        load_map
+        int3
 
         exit        0
 
@@ -35,16 +36,20 @@ load_map:
         .label      equ rbp - 3 * 8
         .label_len  equ rbp - 4 * 8
         .map        equ rbp - 5 * 8
+        .range      equ rbp - 6 * 8
 
-        int3
         push        rbp
         mov         rbp, rsp
-        sub         rsp, 5 * 8
+        sub         rsp, 6 * 8
         mov         qword [.str], rdi
         mov         qword [.str_len], rsi
         mov         qword [.label], rdx
         mov         qword [.label_len], rcx
         mov         qword [.map], r8
+
+        ;           Pointer to Range[]
+        add         r8, 8
+        mov         qword [.range], r8
 
         ;           Move to start of Map data
         call        after_prefix
@@ -62,8 +67,8 @@ load_map:
         call        parse_number_safe
         mov         qword [.str], rdi
         mov         qword [.str_len], rsi
-        mov         r8, qword [.map]
-        mov         qword [r8 + 1 * 8], rax
+        mov         r8, qword [.range]
+        mov         qword [r8], rax
 
         ;           Skip space
         inc         qword [.str]
@@ -75,8 +80,8 @@ load_map:
         call        parse_number_safe
         mov         qword [.str], rdi
         mov         qword [.str_len], rsi
-        mov         r8, qword [.map]
-        mov         qword [r8 + 2 * 8], rax
+        mov         r8, qword [.range]
+        mov         qword [r8 + 1 * 8], rax
 
         ;           Skip space
         inc         qword [.str]
@@ -88,8 +93,8 @@ load_map:
         call        parse_number_safe
         mov         qword [.str], rdi
         mov         qword [.str_len], rsi
-        mov         r8, qword [.map]
-        mov         qword [r8 + 3 * 8], rax
+        mov         r8, qword [.range]
+        mov         qword [r8 + 2 * 8], rax
 
         ;           Skip newline
         inc         qword [.str]
@@ -98,6 +103,9 @@ load_map:
         ;           Increase Map length by 1
         mov         r8, qword [.map]
         inc         qword [r8]
+
+        ;           Move Range pointer to next row
+        add         qword [.range], 3 * 8
 .l2:
         ;           Check next char is a digit
         mov         rdi, qword [.str]
@@ -448,14 +456,31 @@ segment readable writable
 input file "example-5"  ; change to input-5 to solve puzzle
 input_len = $ - input
 
+; destination range start, source range start, range length
+seed_to_soil_map rq MAX_MAP_SIZE
 seed_to_soil_label db "seed-to-soil map:", 0xA
 seed_to_soil_label_len = $ - seed_to_soil_label
 
-; destination range start, source range start, range length
-seed_to_soil_map rq MAX_MAP_SIZE
 soil_to_fertilizer_map rq MAX_MAP_SIZE
+soil_to_fertilizer_label db "soil-to-fertilizer map:", 0xA
+soil_to_fertilizer_label_len = $ - soil_to_fertilizer_label
+
 fertilizer_to_water_map rq MAX_MAP_SIZE
+fertilizer_to_water_label db "fertilizer-to-water map:", 0xA
+fertilizer_to_water_label_len = $ - fertilizer_to_water_label
+
 water_to_light_map rq MAX_MAP_SIZE
+water_to_light_label db "water-to-light map:", 0xA
+water_to_light_label_len = $ - water_to_light_label
+
 light_to_temperature_map rq MAX_MAP_SIZE
+light_to_temperature_label db "light-to-temperature map:", 0xA
+light_to_temperature_label_len = $ - light_to_temperature_label
+
 temperature_to_humidity_map rq MAX_MAP_SIZE
+temperature_to_humidity_label db "temperature-to-humidity map:", 0xA
+temperature_to_humidity_label_len = $ - temperature_to_humidity_label
+
 humidity_to_location_map rq MAX_MAP_SIZE
+humidity_to_location_label db "humidity-to-location map:", 0xA
+humidity_to_location_label_len = $ - humidity_to_location_label
