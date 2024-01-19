@@ -31,6 +31,7 @@ load_seeds:
         call        after_prefix
 
         ;           Load each seed
+        mov         qword [seeds], 0
         xor         rcx, rcx
         jmp         .l2
 .l1:
@@ -38,7 +39,9 @@ load_seeds:
         push        rcx
         call        parse_number_safe
         pop         rcx
-        mov         qword [seeds + rcx * 8], rax
+        int3
+        mov         qword [seeds + rcx * 8 + 8], rax
+        inc         qword [seeds]
 
         ;           Skip space
         inc         rdi
