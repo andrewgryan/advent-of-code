@@ -75,24 +75,25 @@ hand:
 
 ; @param {*Hand} - Address of hand
 is_five_of_a_kind:
-        movzx      al, 1
+        xor        r9, r9
+        mov        rax, 1
         movzx      r8, byte [rdi]
 
         cmp        r8b, byte [rdi + 1]
         sete       r9b
-        imul       al, r9b
+        imul       rax, r9
 
         cmp        r8b, byte [rdi + 2]
         sete       r9b
-        imul       al, r9b
+        imul       rax, r9
 
         cmp        r8b, byte [rdi + 3]
         sete       r9b
-        imul       al, r9b
+        imul       rax, r9
 
         cmp        r8b, byte [rdi + 4]
         sete       r9b
-        imul       al, r9b
+        imul       rax, r9
         ret
 
 
