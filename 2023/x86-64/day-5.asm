@@ -12,7 +12,7 @@ include "parsers.asm"
 segment readable executable
 entry main
 main:
-        mov         r10, seeds        ; DEBUG: seeds
+        mov         rdi, seeds
         call        load_seeds
         ; call        load_maps
 
@@ -543,7 +543,7 @@ apply_range:
 
 segment readable writable
 
-seeds dq MAX_SEEDS
+seeds rq MAX_SEEDS
 seeds_label db "seeds: "
 seeds_label_len = $ - seeds_label
 
