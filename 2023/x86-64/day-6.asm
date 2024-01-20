@@ -4,29 +4,84 @@ format ELF64 executable
 include "util.inc"
 
 
+RACES = 3
+
+
 segment readable executable
 entry main
 main:
-        mov        rdi, 7        ; Race duration
-        mov        rsi, 9        ; Distance record
+        xor        rcx, rcx
+        mov        rdx, 1
+        jmp        .l2
+.l1:
+        push       rdx
+        push       rcx
+        mov        rdi, qword [time + 8 * rcx]   ; Race duration
+        mov        rsi, qword [record + 8 * rcx] ; Distance record
         call       ways_to_win
+        pop        rcx
+        pop        rdx
+
+        imul       rdx, rax
+        inc        rcx
+.l2:
+        cmp        rcx, RACES
+        jb         .l1
+
         int3
         exit       0
 
 
+; @param {int} rdi - Race duration
 ways_to_win:
-        ;          Approach from below
-        push       rsi
-        mov        rsi, 0
-        call       distance
-        pop        rsi
+        call       min_button_press
+        push       rax
+        call       max_button_press
+        push       rax
 
-        ;          Approach from above
+        ;          Calculate possible durations
+        pop        rax
+        pop        r8
+        sub        rax, r8
+        inc        rax
+        ret
+
+
+;       Approach from above
+max_button_press:
+        mov        rcx, rdi
+.l1:
         push       rsi
-        mov        rsi, rdi
+        mov        rsi, rcx
         call       distance
         pop        rsi
+        cmp        rax, rsi
+        ja         .l2
+
+        dec        rcx
+        jmp        .l1
+.l2:
+        mov        rax, rcx
         ret
+
+
+;       Approach from below
+min_button_press:
+        xor        rcx, rcx
+.l1:
+        push       rsi
+        mov        rsi, rcx
+        call       distance
+        pop        rsi
+        cmp        rax, rsi
+        ja         .l2
+
+        inc        rcx
+        jmp        .l1
+.l2:
+        mov        rax, rcx
+        ret
+
 
 
 ; @param {int} rdi - Race duration
@@ -49,3 +104,5 @@ distance:
 
 
 segment readable writable
+time dq 7, 15, 30
+record dq 9, 40, 200
