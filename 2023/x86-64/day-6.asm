@@ -4,7 +4,9 @@ format ELF64 executable
 include "util.inc"
 
 
-RACES = 3
+EXAMPLE_RACES = 3
+INPUT_RACES = 4
+RACES = INPUT_RACES
 
 
 segment readable executable
@@ -104,5 +106,10 @@ distance:
 
 
 segment readable writable
-time dq 7, 15, 30
-record dq 9, 40, 200
+; Example
+; time dq 7, 15, 30
+; record dq 9, 40, 200
+
+; Input
+time dq 41, 66, 72, 66
+record dq 244, 1047, 1228, 1040
