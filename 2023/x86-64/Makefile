@@ -1,3 +1,3 @@
-day = day-6
+day = day-7
 bin/$(day): $(day).asm util.inc
 	fasm $(day).asm bin/$(day)
