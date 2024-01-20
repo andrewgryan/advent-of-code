@@ -8,28 +8,18 @@ EXAMPLE_RACES = 3
 INPUT_RACES = 4
 RACES = INPUT_RACES
 
+EXAMPLE_TIME = 71530
+EXAMPLE_RECORD = 940200
+
+TIME = 41667266
+RECORD = 244104712281040
 
 segment readable executable
 entry main
 main:
-        xor        rcx, rcx
-        mov        rdx, 1
-        jmp        .l2
-.l1:
-        push       rdx
-        push       rcx
-        mov        rdi, qword [time + 8 * rcx]   ; Race duration
-        mov        rsi, qword [record + 8 * rcx] ; Distance record
+        mov        rdi, TIME   ; Race duration
+        mov        rsi, RECORD ; Distance record
         call       ways_to_win
-        pop        rcx
-        pop        rdx
-
-        imul       rdx, rax
-        inc        rcx
-.l2:
-        cmp        rcx, RACES
-        jb         .l1
-
         int3
         exit       0
 
@@ -110,6 +100,6 @@ segment readable writable
 ; time dq 7, 15, 30
 ; record dq 9, 40, 200
 
-; Input
-time dq 41, 66, 72, 66
-record dq 244, 1047, 1228, 1040
+; ; Input
+; time dq 41, 66, 72, 66
+; record dq 244, 1047, 1228, 1040
