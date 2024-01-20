@@ -23,18 +23,38 @@ main:
         mov         rcx, 0
         jmp         .l2
 .l1:
+        ;           Range of seeds
+        xor         r8, r8
+        jmp         .l3
+.l4:
+        ;           Load and process a seed
+        push        r8
         push        rdx
         push        rcx
         mov         rdi, qword [seeds + 8 * rcx + 8]
+        int3
+        add         rdi, r8
         call        seed_to_location
         mov         rsi, rax
         pop         rcx
         pop         rdx
+        pop         r8
 
+        ;           Update minimum location
         mov         rdi, rdx
         call        min
         mov         rdx, rax
-        inc         rcx
+
+        ;           Loop over range in pair
+        inc         r8
+.l3:
+        ;           Range maximum
+        mov         r11, qword [seeds + 8 * rcx + 2 * 8]
+        cmp         r8, r11
+        jb          .l4
+
+        ;           Loop over pairs
+        add         rcx, 2
 .l2:
         cmp         rcx, qword [seeds]
         jb          .l1
@@ -580,7 +600,7 @@ seeds rq MAX_SEEDS
 seeds_label db "seeds: "
 seeds_label_len = $ - seeds_label
 
-input file "input-5"  ; change to input-5 to solve puzzle
+input file "example-5"  ; change to input-5 to solve puzzle
 input_len = $ - input
 
 ; destination range start, source range start, range length
