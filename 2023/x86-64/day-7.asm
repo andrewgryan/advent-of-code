@@ -10,9 +10,9 @@ segment readable executable
 entry main
 main:
         mov        rdi, full_house
-        call       is_four_of_a_kind
-        mov        rdi, four_of_a_kind
-        call       is_four_of_a_kind
+        call       is_full_house
+        mov        rdi, three_of_a_kind
+        call       is_full_house
         int3
         exit       0
 
@@ -99,16 +99,26 @@ is_five_of_a_kind:
         ret
 
 
+; @param {int[]} rdi - Hand
 is_four_of_a_kind:
-        ; How to count 4 unique values?
+        mov         rsi, 4
+        call        of_a_kind
+        ret
+
+
+; @param {int[]} rdi - Hand
+; @param {int}   rsi - Count
+of_a_kind:
+        push       rsi
         mov        rsi, ranks
         call       count_ranks
+        pop        rsi
 
         ;          Detect a 4
         xor        rcx, rcx
         jmp        .l2
 .l1:
-        cmp        byte [ranks + rcx], 4
+        cmp        byte [ranks + rcx], sil
         je         .found
 
         inc        rcx
@@ -124,12 +134,27 @@ is_four_of_a_kind:
 
 
 is_full_house:
-        mov        rax, 1
+        push        rdi
+        mov         rsi, 3
+        call        of_a_kind
+        pop         rdi
+        push        rax
+
+        push        rdi
+        mov         rsi, 2
+        call        of_a_kind
+        pop         rdi
+        push        rax
+
+        pop         rax
+        pop         r8
+        imul        rax, r8
         ret
 
 
 is_three_of_a_kind:
-        mov        rax, 1
+        mov         rsi, 3
+        call        of_a_kind
         ret
 
 
@@ -139,7 +164,8 @@ is_two_pair:
 
 
 is_one_pair:
-        mov        rax, 1
+        mov         rsi, 2
+        call        of_a_kind
         ret
 
 
