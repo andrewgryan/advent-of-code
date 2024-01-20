@@ -3,13 +3,16 @@ format ELF64 executable
 
 include "util.inc"
 
+NUMBER_OF_RANKS = 13
+
 
 segment readable executable
 entry main
 main:
         mov        rdi, full_house
-        mov        rsi, ranks
-        call       count_ranks
+        call       is_four_of_a_kind
+        mov        rdi, four_of_a_kind
+        call       is_four_of_a_kind
         int3
         exit       0
 
@@ -98,7 +101,24 @@ is_five_of_a_kind:
 
 is_four_of_a_kind:
         ; How to count 4 unique values?
+        mov        rsi, ranks
+        call       count_ranks
 
+        ;          Detect a 4
+        xor        rcx, rcx
+        jmp        .l2
+.l1:
+        cmp        byte [ranks + rcx], 4
+        je         .found
+
+        inc        rcx
+.l2:
+        cmp        rcx, NUMBER_OF_RANKS
+        jb         .l1
+        mov        rax, 0
+        ret
+
+.found:
         mov        rax, 1
         ret
 
@@ -181,7 +201,7 @@ hash:
 
 segment readable writable
 order db "23456789TJQKA"
-ranks rb 13
+ranks rb NUMBER_OF_RANKS
 
 five_of_a_kind db "AAAAA"
 four_of_a_kind db "AA8AA"
