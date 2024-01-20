@@ -12,14 +12,48 @@ include "parsers.asm"
 segment readable executable
 entry main
 main:
-        mov         rdi, seeds
+        ;           Load data
         call        load_seeds
-        ; call        load_maps
+        call        load_maps
+
+        ;           Min locations
+        mov         rdi, qword [seeds + 8]
+        call        seed_to_location
+        mov         rdx, rax
+        mov         rcx, 0
+        jmp         .l2
+.l1:
+        push        rdx
+        push        rcx
+        mov         rdi, qword [seeds + 8 * rcx + 8]
+        call        seed_to_location
+        mov         rsi, rax
+        pop         rcx
+        pop         rdx
+
+        mov         rdi, rdx
+        call        min
+        mov         rdx, rax
+        inc         rcx
+.l2:
+        cmp         rcx, qword [seeds]
+        jb          .l1
+
 
         ; mov         rdi, 14
-        ; call        seed_to_location
         int3
         exit        0
+
+
+; Find minimum of two numbers
+min:
+        cmp        rdi, rsi
+        jb         .left
+        mov        rax, rsi
+        ret
+.left:
+        mov        rax, rdi
+        ret
 
 
 load_seeds:
@@ -39,7 +73,6 @@ load_seeds:
         push        rcx
         call        parse_number_safe
         pop         rcx
-        int3
         mov         qword [seeds + rcx * 8 + 8], rax
         inc         qword [seeds]
 
