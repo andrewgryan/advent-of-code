@@ -32,7 +32,6 @@ main:
         push        rdx
         push        rcx
         mov         rdi, qword [seeds + 8 * rcx + 8]
-        int3
         add         rdi, r8
         call        seed_to_location
         mov         rsi, rax
@@ -600,7 +599,7 @@ seeds rq MAX_SEEDS
 seeds_label db "seeds: "
 seeds_label_len = $ - seeds_label
 
-input file "example-5"  ; change to input-5 to solve puzzle
+input file "input-5"  ; change to input-5 to solve puzzle
 input_len = $ - input
 
 ; destination range start, source range start, range length
