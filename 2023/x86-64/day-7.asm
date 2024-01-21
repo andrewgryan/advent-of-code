@@ -11,14 +11,60 @@ NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
 segment readable executable
 entry main
 main:
-        mov        rdi, three_of_a_kind
-        call       hand
+        mov        rdi, strong_four
+        mov        rsi, weak_four
+        call       tie_break
         int3
         exit       0
 
 
 ; @param {int[]} rdi - Hand
-hand:
+; @param {int[]} rsi - Hand
+tie_break:
+        xor        rcx, rcx
+        jmp        .l2
+.l1:
+        push       rcx
+        push       rdi
+        movzx      rdi, byte [rdi + rcx]
+        call       hash
+        pop        rdi
+        pop        rcx
+        push       rax
+
+        push       rcx
+        push       rdi
+        movzx      rdi, byte [rsi + rcx]
+        call       hash
+        pop        rdi
+        pop        rcx
+        push       rax
+
+        pop        r9
+        pop        r8
+        cmp        r8, r9
+        ja         .win
+        cmp        r8, r9
+        jb         .lose
+
+        inc        rcx
+.l2:
+        cmp        rcx, CARDS_IN_HAND
+        jb         .l1
+
+        mov        rax, 1                 ; Draw
+        ret
+
+.win:
+        mov        rax, 2
+        ret
+.lose:
+        mov        rax, 0
+        ret
+
+
+; @param {int[]} rdi - Hand
+score_hand:
         mov        rsi, ranks
         call       count_ranks
 
@@ -252,3 +298,6 @@ three_of_a_kind db "TTT98"
 two_pair db "23432"
 one_pair db "A23A4"
 high_card db "23456"
+
+strong_four db "33332"
+weak_four db "2AAAA"
