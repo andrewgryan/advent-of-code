@@ -7,15 +7,64 @@ CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
 
+ARRAY_LENGTH = 6
+
 
 segment readable executable
 entry main
 main:
-        mov        rdi, strong_four
-        mov        rsi, weak_four
-        call       tie_break
+        mov        rdi, numbers
+        call       bubble_sort
         int3
         exit       0
+
+
+
+; @param {int[]} rdi - Array
+bubble_sort:
+        xor        rcx, rcx
+        xor        r10, r10
+        jmp        .l2
+.l1:
+        ;          Read A[i], A[i + 1]
+        mov        r8b, byte [rdi + rcx]
+        mov        r9b, byte [rdi + rcx + 1]
+        cmp        r8b, r9b
+        ja         .swap
+.l3:
+        inc        rcx
+.l2:
+        ;          Inner loop condition
+        cmp        rcx, ARRAY_LENGTH - 1
+        jb         .l1
+
+        ;          Outer loop condition
+        xor        rcx, rcx
+        inc        r10
+        cmp        r10, ARRAY_LENGTH - 1
+        jb        .l1
+
+        ret
+.swap:
+        ;          Swap A[i], A[i + 1]
+        mov        rsi, rcx
+        mov        rdx, rcx
+        inc        rdx
+        call       swap
+        jmp        .l3
+
+
+; Swap two values in an array
+;
+; @param {int[]} rdi - Array
+; @param {int}   rsi - First index
+; @param {int}   rdx - Second index
+swap:
+        mov        r8b, byte [rdi + rsi]
+        mov        r9b, byte [rdi + rdx]
+        mov        byte [rdi + rdx], r8b
+        mov        byte [rdi + rsi], r9b
+        ret
 
 
 ; @param {int[]} rdi - Hand
@@ -301,3 +350,5 @@ high_card db "23456"
 
 strong_four db "33332"
 weak_four db "2AAAA"
+
+numbers db 7, 1, 4, 2, 8, 3
