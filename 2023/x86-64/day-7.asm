@@ -2,6 +2,7 @@ format ELF64 executable
 
 
 include "util.inc"
+include "digit.asm"
 
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
@@ -13,11 +14,53 @@ ARRAY_LENGTH = 10
 segment readable executable
 entry main
 main:
-        mov        rdi, numbers
-        call       bubble_sort
+        mov        rdi, input
+        mov        rsi, hands
+        call       read_hand
         int3
         exit       0
 
+
+; @param {string} rdi in  string
+; @param {Hand}   rsi out Hand
+read_hand:
+        ;          Read cards
+        xor        rcx, rcx
+        jmp        .l2
+.l1:
+        mov        r8b, byte [rdi]
+        mov        byte [rsi], r8b
+        inc        rdi
+        inc        rsi
+        inc        rcx
+.l2:
+        cmp        rcx, 5
+        jb         .l1
+
+        ;          Skip space
+        inc        rdi
+
+        ;          Read number
+        xor        rcx, rcx
+        jmp        .l4
+.l3:
+        mov        r8b, byte [rdi]
+        mov        byte [rsi], r8b
+        inc        rdi
+        inc        rsi
+        inc        rcx
+.l4:
+        push       rdi
+        movzx      rdi, byte [rdi]
+        call       is_digit
+        pop        rdi
+        cmp        rax, 1
+        jne        .break
+
+        cmp        rcx, 3
+        jb         .l3
+.break:
+        ret
 
 
 ; @param {int[]} rdi - Array
@@ -352,3 +395,7 @@ strong_four db "33332"
 weak_four db "2AAAA"
 
 numbers db 7, 1, 4, 2, 8, 3, 12, 5, 6, 9
+hands rq 1000
+
+input file "input-7"
+input_len = $ - input
