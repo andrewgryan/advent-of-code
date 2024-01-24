@@ -7,7 +7,7 @@ CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
 
-ARRAY_LENGTH = 6
+ARRAY_LENGTH = 10
 
 
 segment readable executable
@@ -351,4 +351,4 @@ high_card db "23456"
 strong_four db "33332"
 weak_four db "2AAAA"
 
-numbers db 7, 1, 4, 2, 8, 3
+numbers db 7, 1, 4, 2, 8, 3, 12, 5, 6, 9
