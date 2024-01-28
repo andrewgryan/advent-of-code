@@ -4,7 +4,7 @@ format ELF64 executable
 include "util.inc"
 include "digit.asm"
 
-NUMBER_OF_HANDS = 1000
+NUMBER_OF_HANDS = 3
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
@@ -21,7 +21,12 @@ main:
         mov        rsi, input_len
         call       load_hands
 
-        ;          TODO: Sort by high-card
+        ;          Sort by high-card
+        mov        rdi, hands
+        mov        rsi, NUMBER_OF_HANDS
+        mov        rdx, tie_break
+        call       sort_by
+
         ;          TODO: Sort by combination
         ;          TODO: Sum bids weighted by index
 
@@ -78,6 +83,93 @@ read_hand:
         ret
 
 
+;       Sort array of quad words using comparator function
+;
+;       Comparator: (a, b) => a > b
+;
+;       @param rdi  Array to sort
+;       @param rsi  Array length
+;       @param rdx  Comparator
+sort_by:
+        .array     equ rbp - 1 * 8
+        .n         equ rbp - 2 * 8
+        .fn        equ rbp - 3 * 8
+        .i         equ rbp - 4 * 8
+        .j         equ rbp - 5 * 8
+
+        push       rbp
+        mov        rbp, rsp
+        sub        rsp, 5 * 8
+
+        mov        qword [.array], rdi
+        mov        qword [.n], rsi
+        mov        qword [.fn], rdx
+
+        ;          Local variables
+        mov        qword [.i], 0
+        mov        qword [.j], 0
+        jmp        .l3
+.l1:
+        mov        rcx, qword [.i]
+        mov        rdi, qword [.array]
+        lea        rsi, [rdi + 8 * rcx + 8]
+        lea        rdi, [rdi + 8 * rcx]
+        call       qword [.fn]
+        cmp        rax, 1
+        je         .swap
+.l2:
+        inc        qword [.i]
+.l3:
+        ;          Inner loop
+        mov        rcx, qword [.i]
+        cmp        rdx, qword [.n]
+        dec        rdx
+        cmp        rcx, rdx
+        jb         .l1
+
+        ;          Outer loop
+        mov        qword [.i], 0
+        inc        qword [.j]
+        mov        rcx, qword [.j]
+        cmp        rcx, qword [.n]
+        jb         .l1
+
+        ;          Restore stack
+        mov        rsp, rbp
+        pop        rbp
+        ret
+.swap:
+        ;          Swap A[i] with A[i + 1]
+        mov        rdi, qword [.array]
+        mov        rsi, qword [.i]
+        mov        rdx, qword [.i]
+        inc        rdx
+        call       swap_qword
+        jmp        .l2
+
+
+;       @param rdi Left item
+;       @param rsi Right item
+compare:
+        cmp        rdi, rsi
+        seta       al
+        ret
+
+
+; Swap two quad words in an array
+;
+; @param {int[]} rdi - Array
+; @param {int}   rsi - First index
+; @param {int}   rdx - Second index
+swap_qword:
+        mov        r8, qword [rdi + 8 * rsi]
+        mov        r9, qword [rdi + 8 * rdx]
+        mov        qword [rdi + 8 * rdx], r8
+        mov        qword [rdi + 8 * rsi], r9
+        ret
+
+
+; TODO: Sort by quadword (8 bytes)
 ; @param {int[]} rdi - Array
 bubble_sort:
         xor        rcx, rcx
@@ -108,7 +200,7 @@ bubble_sort:
         mov        rsi, rcx
         mov        rdx, rcx
         inc        rdx
-        call       swap
+        call       swap_byte
         jmp        .l3
 
 
@@ -117,7 +209,7 @@ bubble_sort:
 ; @param {int[]} rdi - Array
 ; @param {int}   rsi - First index
 ; @param {int}   rdx - Second index
-swap:
+swap_byte:
         mov        r8b, byte [rdi + rsi]
         mov        r9b, byte [rdi + rdx]
         mov        byte [rdi + rdx], r8b
@@ -159,11 +251,11 @@ tie_break:
         cmp        rcx, CARDS_IN_HAND
         jb         .l1
 
-        mov        rax, 1                 ; Draw
+        mov        rax, 0                 ; Draw
         ret
 
 .win:
-        mov        rax, 2
+        mov        rax, 1
         ret
 .lose:
         mov        rax, 0
