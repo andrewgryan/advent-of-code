@@ -4,6 +4,7 @@ format ELF64 executable
 include "util.inc"
 include "digit.asm"
 
+NUMBER_OF_HANDS = 1000
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
@@ -14,24 +15,53 @@ ARRAY_LENGTH = 10
 segment readable executable
 entry main
 main:
+        mov        r10, hands        ; DEBUG
+
         mov        rdi, input
-        mov        rsi, hands
-        call       read_hand
+        mov        rsi, input_len
+        call       load_hands
+
+        ;          TODO: Sort by high-card
+        ;          TODO: Sort by combination
+        ;          TODO: Sum bids weighted by index
+
         int3
         exit       0
 
 
-; @param {string} rdi in  string
-; @param {Hand}   rsi out Hand
+;       Read N hands and bids
+load_hands:
+        xor        rcx, rcx
+        jmp        .l2
+.l1:
+        push       rcx
+        lea        rdx, [hands + rcx * 8]
+        call       read_hand
+        pop        rcx
+
+        ;          Skip newline
+        inc        rdi
+        dec        rsi
+
+        inc        rcx
+.l2:
+        cmp        rcx, NUMBER_OF_HANDS
+        jb         .l1
+        ret
+
+
+; @param {string} rdi in  String address
+; @param {int}    rsi in  String length
+; @param {Hand}   rdx out Hand address
 read_hand:
         ;          Read cards
         xor        rcx, rcx
         jmp        .l2
 .l1:
         mov        r8b, byte [rdi]
-        mov        byte [rsi], r8b
+        mov        byte [rdx + rcx], r8b
         inc        rdi
-        inc        rsi
+        dec        rsi
         inc        rcx
 .l2:
         cmp        rcx, 5
@@ -39,30 +69,12 @@ read_hand:
 
         ;          Skip space
         inc        rdi
+        dec        rsi
 
-        int3
-        call       to_number
-
-        ;          Read number
-        xor        rcx, rcx
-        jmp        .l4
-.l3:
-        mov        r8b, byte [rdi]
-        mov        byte [rsi], r8b
-        inc        rdi
-        inc        rsi
-        inc        rcx
-.l4:
-        push       rdi
-        movzx      rdi, byte [rdi]
-        call       is_digit
-        pop        rdi
-        cmp        rax, 1
-        jne        .break
-
-        cmp        rcx, 3
-        jb         .l3
-.break:
+        push       rdx
+        call       parse_number
+        pop        rdx
+        mov        word [rdx + 5], ax
         ret
 
 

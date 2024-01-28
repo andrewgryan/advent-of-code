@@ -1,3 +1,37 @@
+
+; @param {str} rdi - ASCII string
+; @param {int} rsi - length
+parse_number:
+        .str equ rbp - 1 * 8
+        .len equ rbp - 2 * 8
+        .count equ rbp - 3 * 8
+
+        ;          Allocate on stack
+        push       rbp
+        mov        rbp, rsp
+        sub        rsp, 3 * 8
+        mov        qword [.str], rdi
+        mov        qword [.len], rsi
+
+        mov        rdi, qword [.str]
+        call       count_digits
+        mov        qword [.count], rax
+
+        mov        rdi, qword [.str]
+        call       to_number
+
+        ;          Move str forward
+        mov        rsi, qword [.len]
+        sub        rsi, qword [.count]
+        mov        rdi, qword [.str]
+        add        rdi, qword [.count]
+
+        ;          Restore stack pointer
+        mov        rsp, rbp
+        pop        rbp
+        ret
+
+
 ; @param rdi - ASCII character [0-9] string
 to_number:
         call       count_digits
