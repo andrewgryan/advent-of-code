@@ -40,6 +40,9 @@ read_hand:
         ;          Skip space
         inc        rdi
 
+        int3
+        call       to_number
+
         ;          Read number
         xor        rcx, rcx
         jmp        .l4

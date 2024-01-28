@@ -9,7 +9,7 @@ to_number:
         jmp        .l2
 .l1:
         push       rdi
-        movzx      rdi, byte [rdi + rcx]
+        movzx      rdi, byte [rdi + rcx - 1]
         call       to_digit
         pop        rdi
 
@@ -21,7 +21,7 @@ to_number:
         dec        rcx
 .l2:
         cmp        rcx, 0
-        jne        .l1
+        ja         .l1
 
         mov        rax, rdx
         ret
