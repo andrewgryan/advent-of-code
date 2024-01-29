@@ -4,7 +4,7 @@ format ELF64 executable
 include "util.inc"
 include "digit.asm"
 
-NUMBER_OF_HANDS = 3
+NUMBER_OF_HANDS = 5
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
@@ -131,7 +131,9 @@ sort_by:
         mov        qword [.i], 0
         inc        qword [.j]
         mov        rcx, qword [.j]
-        cmp        rcx, qword [.n]
+        cmp        rdx, qword [.n]
+        dec        rdx
+        cmp        rcx, rdx
         jb         .l1
 
         ;          Restore stack
@@ -146,14 +148,6 @@ sort_by:
         inc        rdx
         call       swap_qword
         jmp        .l2
-
-
-;       @param rdi Left item
-;       @param rsi Right item
-compare:
-        cmp        rdi, rsi
-        seta       al
-        ret
 
 
 ; Swap two quad words in an array
