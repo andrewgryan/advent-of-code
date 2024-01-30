@@ -4,7 +4,7 @@ format ELF64 executable
 include "util.inc"
 include "digit.asm"
 
-NUMBER_OF_HANDS = 10
+NUMBER_OF_HANDS = 5
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
@@ -33,10 +33,35 @@ main:
         mov        rdx, compare_hands
         call       sort_by
 
-        ;          TODO: Sum bids weighted by index
+        ;          Sum bids weighted by index
+        mov        rdi, hands
+        call       sum_bids
 
         int3
         exit       0
+
+
+;       @param {Hand[]} rdi - Array of hands/bids
+sum_bids:
+        xor        rdx, rdx
+        xor        rcx, rcx
+
+        jmp        .l2
+.l1:
+        movzx      r8, word [rdi + rcx * 8 + 5]
+        mov        r9, rcx
+        inc        r9
+        imul       r8, r9 
+        add        rdx, r8
+
+        inc        rcx
+.l2:
+        cmp        rcx, NUMBER_OF_HANDS
+        jb         .l1
+
+        mov        rax, rdx
+        ret
+
 
 
 ;       Read N hands and bids
@@ -535,5 +560,5 @@ weak_four db "2AAAA"
 numbers db 7, 1, 4, 2, 8, 3, 12, 5, 6, 9
 hands rq 1000
 
-input file "input-7"
+input file "example-7"
 input_len = $ - input
