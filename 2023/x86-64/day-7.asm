@@ -4,7 +4,7 @@ format ELF64 executable
 include "util.inc"
 include "digit.asm"
 
-NUMBER_OF_HANDS = 5
+NUMBER_OF_HANDS = 10
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
@@ -27,7 +27,12 @@ main:
         mov        rdx, tie_break
         call       sort_by
 
-        ;          TODO: Sort by combination
+        ;          Sort by combination
+        mov        rdi, hands
+        mov        rsi, NUMBER_OF_HANDS
+        mov        rdx, compare_hands
+        call       sort_by
+
         ;          TODO: Sum bids weighted by index
 
         int3
@@ -208,6 +213,38 @@ swap_byte:
         mov        r9b, byte [rdi + rdx]
         mov        byte [rdi + rdx], r8b
         mov        byte [rdi + rsi], r9b
+        ret
+
+
+; @param {int[]} rdi - Hand
+; @param {int[]} rsi - Hand
+compare_hands:
+        .left equ rbp - 1 * 8
+        .right equ rbp - 2 * 8
+        .left_score equ rbp - 3 * 8
+        .right_score equ rbp - 4 * 8
+
+        push        rbp
+        mov         rbp, rsp
+        sub         rsp, 4 * 8
+        mov         qword [.left], rdi
+        mov         qword [.right], rsi
+
+        mov         rdi, qword [.left]
+        call        score_hand
+        mov         qword [.left_score], rax
+
+        mov         rdi, qword [.right]
+        call        score_hand
+        mov         qword [.right_score], rax
+
+        xor         rax, rax
+        mov         rdx, qword [.left_score]
+        cmp         rdx, qword [.right_score]
+        seta        al
+
+        mov         rsp, rbp
+        pop         rbp
         ret
 
 
