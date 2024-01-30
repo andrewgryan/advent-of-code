@@ -122,7 +122,7 @@ sort_by:
 .l3:
         ;          Inner loop
         mov        rcx, qword [.i]
-        cmp        rdx, qword [.n]
+        mov        rdx, qword [.n]
         dec        rdx
         cmp        rcx, rdx
         jb         .l1
@@ -131,7 +131,7 @@ sort_by:
         mov        qword [.i], 0
         inc        qword [.j]
         mov        rcx, qword [.j]
-        cmp        rdx, qword [.n]
+        mov        rdx, qword [.n]
         dec        rdx
         cmp        rcx, rdx
         jb         .l1
