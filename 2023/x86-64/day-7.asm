@@ -542,7 +542,7 @@ hash:
 
 
 segment readable writable
-order db "23456789TJQKA"
+order db "J23456789TQKA"
 ranks rb NUMBER_OF_RANKS
 combos rb NUMBER_OF_COMBOS
 
