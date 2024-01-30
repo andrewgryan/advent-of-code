@@ -4,7 +4,7 @@ format ELF64 executable
 include "util.inc"
 include "digit.asm"
 
-NUMBER_OF_HANDS = 5
+NUMBER_OF_HANDS = 1000
 CARDS_IN_HAND = 5
 NUMBER_OF_RANKS = 13
 NUMBER_OF_COMBOS = 6        ; None, Single, Pair, 3, 4, 5
@@ -560,5 +560,5 @@ weak_four db "2AAAA"
 numbers db 7, 1, 4, 2, 8, 3, 12, 5, 6, 9
 hands rq 1000
 
-input file "example-7"
+input file "input-7"
 input_len = $ - input
