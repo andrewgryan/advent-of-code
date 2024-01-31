@@ -323,6 +323,10 @@ score_hand:
         mov        rsi, ranks
         call       count_ranks
 
+        ;          Use wildcard(s)
+        mov        rdi, ranks
+        call       apply_wildcards
+
         mov        rdi, ranks
         mov        rsi, combos
         call       count_combos
@@ -485,6 +489,37 @@ count_combos:
 .l4:
         cmp        rcx, NUMBER_OF_RANKS
         jb         .l3
+        ret
+
+
+; @param {int[]} rdi - Ranks
+apply_wildcards:
+        ;          Find highest matched normal cards
+        lea        rdi, [ranks + 1] ; Normal cards
+        mov        rsi, 13 - 1
+        call       max_index
+
+        ;          Add Jokers to highest matched cards
+        mov        rdx, byte [ranks]           ; Jokers
+        add        byte [ranks + rax + 1], rdx ; Highest matches
+        mov        byte [ranks], 0             ; Jokers
+        ret
+
+
+; @param {int[]} rdi - Array
+; @param {int[]} rsi - Length
+max_index:
+        xor        rcx, rcx
+        jmp        .l2
+.l1:
+        ;          TODO: Max index algorithm
+
+        inc        rcx
+.l2:
+        cmp        rcx, rsi
+        jb         .l1
+
+        mov        rax, 0
         ret
 
 
