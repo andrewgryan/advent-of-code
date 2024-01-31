@@ -500,8 +500,8 @@ apply_wildcards:
         call       max_index
 
         ;          Add Jokers to highest matched cards
-        mov        rdx, byte [ranks]           ; Jokers
-        add        byte [ranks + rax + 1], rdx ; Highest matches
+        mov        dl, byte [ranks]            ; Jokers
+        add        byte [ranks + rax + 1], dl  ; Highest matches
         mov        byte [ranks], 0             ; Jokers
         ret
 
@@ -509,18 +509,25 @@ apply_wildcards:
 ; @param {int[]} rdi - Array
 ; @param {int[]} rsi - Length
 max_index:
+        xor        rax, rax
         xor        rcx, rcx
-        jmp        .l2
+        movzx      rdx, byte [rdi]
+        jmp        .l3
 .l1:
-        ;          TODO: Max index algorithm
-
-        inc        rcx
+        ;          Max index algorithm
+        cmp        byte [rdi + rcx], dl
+        ja         .above
 .l2:
+        inc        rcx
+.l3:
         cmp        rcx, rsi
         jb         .l1
-
-        mov        rax, 0
         ret
+
+.above:
+        mov        rax, rcx
+        movzx      rdx, byte [rdi + rcx]
+        jmp        .l2
 
 
 ; Count occurences of 2, 3, 4, ..., T, J, K, Q, A
@@ -592,7 +599,11 @@ high_card db "23456"
 strong_four db "33332"
 weak_four db "2AAAA"
 
-numbers db 7, 1, 4, 2, 8, 3, 12, 5, 6, 9
+wildcard_hand db "KTJJT"
+
+array db 7, 1, 4, 2, 8, 3, 12, 5, 6, 9
+array_len = $ - array
+
 hands rq 1000
 
 input file "input-7"
