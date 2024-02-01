@@ -1,3 +1,3 @@
-day = day-7
-bin/$(day): $(day).asm util.inc digit.asm
+day = day-8
+bin/$(day): $(day).asm exit.asm
 	fasm $(day).asm bin/$(day)
