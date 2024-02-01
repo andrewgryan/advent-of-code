@@ -8,9 +8,41 @@ segment readable executable
 entry main
 main:
         mov        rdi, node
-        call       hash
+        mov        rsi, network
+        call       load_node
         int3
         exit       0
+
+
+; AAA = (BBB, BBB)
+; @param rdi Address of node line
+load_node:
+        .str equ rbp - 1 * 8
+        .index equ rbp - 2 * 8
+        push       rbp
+        mov        rbp, rsp
+        sub        rsp, 2 * 8
+        mov        qword [.str], rdi
+
+        mov        rdi, qword [.str]
+        call       hash
+        mov        qword [.index], rax
+
+        mov        rdi, qword [.str]
+        add        rdi, 7
+        call       hash
+        mov        rdx, qword [.index]
+        mov        word [network + rdx * 4], ax
+
+        mov        rdi, qword [.str]
+        add        rdi, 12
+        call       hash
+        mov        rdx, qword [.index]
+        mov        word [network + rdx * 4 + 2], ax
+
+        mov        rsp, rbp
+        pop        rbp
+        ret
 
 
 ; @param rdi Address of node
@@ -36,4 +68,4 @@ hash:
 
 segment readable writable
 network rw 26 * 26 * 26
-node db "ABC"
+node db "AAB = (AAC, AAD)"
