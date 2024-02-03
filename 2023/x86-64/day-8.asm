@@ -1,6 +1,7 @@
 format ELF64 executable
 
 NEWLINE = 0x0A
+NUMBER_OF_NODES = 718
 
 include "exit.asm"
 
@@ -9,15 +10,29 @@ segment readable executable
 entry main
 main:
         mov        r8, instructions
+        mov        r9, network
+
         mov        rdi, input
         mov        rsi, input_len
         call       load_instructions
+
+        ;          Skip instruction block
+        add        rdi, rax
+        sub        rsi, rax
+
+        ;          Skip \n\n
+        add        rdi, 2
+        sub        rsi, 2
+
+        call       load_network
+
         int3
         exit       0
 
 
 ; @param {str} rdi address of input
 ; @param {int} rsi length of input
+; @returns {int} parsed length
 load_instructions:
         xor        rcx, rcx
         jmp        .l1
@@ -31,6 +46,27 @@ load_instructions:
 .l1:
         cmp        byte [rdi + rcx], NEWLINE
         jne        .l2
+
+        mov        rax, rcx        ; Return parsed length
+        ret
+
+
+; @param {str} rdi Address of network string
+load_network:
+        xor        rcx, rcx
+        jmp        .l1
+.l2:
+        int3
+        call       load_node
+
+        ;          Skip \n
+        inc        rdi
+        dec        rsi
+
+        inc        rcx
+.l1:
+        cmp        rcx, NUMBER_OF_NODES
+        jb         .l2
         ret
 
 
@@ -59,6 +95,10 @@ load_node:
         call       hash
         mov        rdx, qword [.index]
         mov        word [network + rdx * 4 + 2], ax
+
+        ;          Move pointer to end of tuple
+        add        rdi, 4
+        sub        rsi, 4
 
         mov        rsp, rbp
         pop        rbp
