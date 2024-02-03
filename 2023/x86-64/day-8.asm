@@ -1,9 +1,12 @@
 format ELF64 executable
 
 NEWLINE = 0x0A
-NUMBER_OF_NODES = 718
+NUMBER_OF_NODES = 7 ; 718
 
 include "exit.asm"
+
+START = 0                         ; AAA
+DESTINATION = 26 * 26 * 26        ; ZZZ
 
 
 segment readable executable
@@ -25,8 +28,38 @@ main:
 
         call       load_network
 
+        ;          Loop over network
+        int3
+        call       find_route
+
         int3
         exit       0
+
+
+find_route:
+        xor        rcx, rcx                          ; Route counter
+        xor        r9, r9                            ; Instruction index
+        mov        rdx, START                        ; Network start point
+        movzx      r11, word [instructions]          ; Instruction length
+        jmp        .l1
+.l2:
+        xor        rax, rax                          ; Zero 64-bit rax register
+        cmp        r9, r11                           ; Compare instruction index to length
+        seta       al                                ; 0 or 1
+        imul       rax, r11                          ; rax = (0 or 1) * N
+        sub        r9, rax                           ; Subtract 0 or N
+
+        movzx      r8, byte [instructions + r9 + 2]  ; L/R offset
+        movzx      rdx, word [network + rdx + r8]    ; Next address
+
+        inc        r9                                ; Instruction counter
+        inc        rcx                               ; Route counter
+.l1:
+        cmp        rdx, DESTINATION
+        jne        .l2
+        
+        mov        rax, rcx
+        ret
 
 
 ; @param {str} rdi address of input
@@ -132,5 +165,5 @@ instructions rb 512
 network rd 26 * 26 * 26
 node db "AAB = (GGG, ZZZ)"
 
-input file "input-8"
+input file "example-8"
 input_len = $ - input
