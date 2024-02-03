@@ -1,5 +1,6 @@
 format ELF64 executable
 
+NEWLINE = 0x0A
 
 include "exit.asm"
 
@@ -7,11 +8,30 @@ include "exit.asm"
 segment readable executable
 entry main
 main:
-        mov        rdi, node
-        mov        rsi, network
-        call       load_node
+        mov        r8, instructions
+        mov        rdi, input
+        mov        rsi, input_len
+        call       load_instructions
         int3
         exit       0
+
+
+; @param {str} rdi address of input
+; @param {int} rsi length of input
+load_instructions:
+        xor        rcx, rcx
+        jmp        .l1
+.l2:
+        cmp        byte [rdi + rcx], 'R'
+        sete       dl
+        shl        dl, 1
+        mov        byte [instructions + rcx + 2], dl
+        inc        word [instructions]
+        inc        rcx
+.l1:
+        cmp        byte [rdi + rcx], NEWLINE
+        jne        .l2
+        ret
 
 
 ; AAA = (BBB, BBB)
@@ -67,5 +87,10 @@ hash:
 
 
 segment readable writable
+instructions rb 512
+
 network rw 26 * 26 * 26
-node db "AAB = (AAC, AAD)"
+node db "AAB = (GGG, ZZZ)"
+
+input file "input-8"
+input_len = $ - input
