@@ -9,7 +9,6 @@ include "exit.asm"
 segment readable executable
 entry main
 main:
-        mov        r8, instructions
         mov        r9, network
 
         mov        rdi, input
@@ -56,8 +55,9 @@ load_network:
         xor        rcx, rcx
         jmp        .l1
 .l2:
-        int3
+        push       rcx
         call       load_node
+        pop        rcx
 
         ;          Skip \n
         inc        rdi
@@ -129,7 +129,7 @@ hash:
 segment readable writable
 instructions rb 512
 
-network rw 26 * 26 * 26
+network rd 26 * 26 * 26
 node db "AAB = (GGG, ZZZ)"
 
 input file "input-8"
