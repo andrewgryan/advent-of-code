@@ -50,7 +50,7 @@ find_route:
         sub        r9, rax                           ; Subtract 0 or N
 
         movzx      r8, byte [instructions + r9 + 2]  ; L/R offset
-        movzx      rdx, word [network + rdx + r8]    ; Next address
+        movzx      rdx, word [network + rdx * 4 + r8]    ; Next address
 
         inc        r9                                ; Instruction counter
         inc        rcx                               ; Route counter
