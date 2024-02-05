@@ -12,17 +12,7 @@ DESTINATION = 26 * 26 * 26 - 1    ; ZZZ
 segment readable executable
 entry main
 main:
-        mov        rdi, code
-        call       hash
-        mov        rdi, rax
-        call       endswith_z
-
-        int3
-        exit       0
-
-
-part_one:
-        mov        r9, network
+        mov        r9, ghosts
 
         mov        rdi, input
         mov        rsi, input_len
@@ -40,6 +30,9 @@ part_one:
 
         ;          Loop over network
         call       find_route
+
+        int3
+        exit       0
 
 
 find_route:
@@ -123,6 +116,9 @@ load_node:
         call       hash
         mov        qword [.index], rax
 
+        mov        rdi, rax
+        call       detect_ghost
+
         mov        rdi, qword [.str]
         add        rdi, 7
         call       hash
@@ -192,7 +188,23 @@ endswith:
         ret
 
 
+detect_ghost:
+        push        rdi
+        call        endswith_a
+        pop         rdi
+        cmp         rax, 1
+        je          .found
+.return:
+        ret
+.found:
+        movzx       rcx, word [ghosts]
+        mov         word [ghosts + rcx * 2 + 2], di
+        inc         word [ghosts]
+        jmp         .return
+
+
 segment readable writable
+ghosts rd 512
 instructions rb 512
 
 network rd 26 * 26 * 26
