@@ -12,6 +12,16 @@ DESTINATION = 26 * 26 * 26 - 1    ; ZZZ
 segment readable executable
 entry main
 main:
+        mov        rdi, code
+        call       hash
+        mov        rdi, rax
+        call       endswith_z
+
+        int3
+        exit       0
+
+
+part_one:
         mov        r9, network
 
         mov        rdi, input
@@ -30,9 +40,6 @@ main:
 
         ;          Loop over network
         call       find_route
-
-        int3
-        exit       0
 
 
 find_route:
@@ -158,10 +165,39 @@ hash:
         ret
 
 
+; @param {int} rdi Number representing node
+endswith_a:
+        xor        rsi, rsi
+        call       endswith
+        ret
+
+
+; @param {int} rdi Number representing node
+endswith_z:
+        mov        rsi, 25
+        call       endswith
+        ret
+
+
+; @param {int} rdi Number representing node
+; @param {int} rsi Letter index {0-25}
+endswith:
+        mov        eax, edi      ; Copy word width register
+        cdq
+        mov        r8w, 26       ; Register containing 26
+        div        r8w           ; Divide rax by 26
+        xor        rax, rax      ; Clear rax
+        cmp        dx, si        ; Compare remainder to letter
+        sete       al            ; Bool
+        ret
+
+
 segment readable writable
 instructions rb 512
 
 network rd 26 * 26 * 26
+
+code db "ZZZ"
 
 input file "input-8"
 input_len = $ - input
