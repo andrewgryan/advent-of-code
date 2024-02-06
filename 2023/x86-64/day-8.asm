@@ -38,26 +38,81 @@ main:
 find_route:
         xor        rcx, rcx                          ; Route counter
         xor        r9, r9                            ; Instruction index
-        mov        rdx, START                        ; Network start point
-        movzx      r11, word [instructions]          ; Instruction length
         jmp        .l1
 .l2:
         xor        rax, rax                          ; Zero 64-bit rax register
+        movzx      r11, word [instructions]          ; Instruction length
         cmp        r9, r11                           ; Compare instruction index to length
         setae      al                                ; 0 or 1
         imul       rax, r11                          ; rax = (0 or 1) * N
         sub        r9, rax                           ; Subtract 0 or N
 
         movzx      r8, byte [instructions + r9 + 2]  ; L/R offset
-        movzx      rdx, word [network + rdx*4 + r8]  ; Next address
+
+        ;          Move all ghosts one step
+        push       r8
+        push       r9
+        push       rcx
+        mov        rdi, r8
+        call       ghost_loop
+        pop        rcx
+        pop        r9
+        pop        r8
 
         inc        r9                                ; Instruction counter
         inc        rcx                               ; Route counter
 .l1:
-        cmp        rdx, DESTINATION
+        push       r8
+        push       r9
+        push       rcx
+        call       ghost_at_destination
+        pop        rcx
+        pop        r9
+        pop        r8
+        cmp        rax, 1
         jne        .l2
         
         mov        rax, rcx
+        ret
+
+
+; @param {int}    rdi L/R byte offset
+; @returns {bool} rax All ghosts end with Z
+ghost_loop:
+        xor        rcx, rcx
+        movzx      rdx, word [ghosts]
+        jmp        .l1
+.l2:
+        movzx      r8, word [ghosts + rcx * 2 + 2]   ; Load current address
+        movzx      r8, word [network + r8*4 + rdi]   ; Find next address
+        mov        word [ghosts + rcx * 2 + 2], r8w  ; Save next address
+        inc        rcx
+.l1:
+        cmp        rcx, rdx
+        jb         .l2
+        ret
+
+
+; Detect all ghosts have reached letters ending in Z
+;
+; @returns {bool} Indicate all ghosts at destination
+ghost_at_destination:
+        xor        rcx, rcx
+        movzx      rdx, word [ghosts]
+        mov        r8, 1
+        jmp        .l1
+.l2:
+        push       rdx
+        push       r8
+        movzx      rdi, word [ghosts + rcx * 2 + 2]   ; Load letters
+        call       endswith_z
+        pop        r8
+        pop        rdx
+        imul       r8, rax
+        inc        rcx
+.l1:
+        cmp        rcx, rdx
+        jb         .l2
         ret
 
 
