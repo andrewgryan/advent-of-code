@@ -113,6 +113,7 @@ ghost_at_destination:
 .l1:
         cmp        rcx, rdx
         jb         .l2
+        mov        rax, r8
         ret
 
 
