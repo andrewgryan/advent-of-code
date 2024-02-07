@@ -69,8 +69,8 @@ find_route:
         pop        rcx
         pop        r9
         pop        r8
-        cmp        rax, 1
-        jne        .l2
+        cmp        rax, 0
+        je         .l2
         
         mov        rax, rcx
         ret
