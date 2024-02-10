@@ -49,7 +49,9 @@ for await (const chunk of Deno.stdin.readable) {
 
   if (method === "initialize") {
     const result = {
-      capabilities: {},
+      capabilities: {
+        documentFormattingProvider: true,
+      },
       serverInfo: {
         name: "lsp-from-scratch",
         version: "1.0",
