@@ -56,6 +56,7 @@ for await (const chunk of Deno.stdin.readable) {
   if (method === "initialize") {
     const result = {
       capabilities: {
+        textDocumentSync: 1,
         documentFormattingProvider: true,
       },
       serverInfo: {
@@ -69,21 +70,30 @@ for await (const chunk of Deno.stdin.readable) {
     const { uri, text } = request.params.textDocument;
     documents[uri] = text;
   }
+  if (method === "textDocument/didChange") {
+    const { uri } = request.params.textDocument;
+    const changes = request.params.contentChanges;
+    documents[uri] = changes[0].text;
+  }
   if (method === "textDocument/formatting") {
     const { uri } = request.params.textDocument;
+    const edits = [];
     const text = documents[uri];
-    log(text);
+    text.split("\n").forEach((line, lineIndex) => {
+      if (line.indexOf("mov") !== -1) {
+        edits.push({
+          range: {
+            start: { line: lineIndex, character: line.indexOf("mov") },
+            end: { line: lineIndex, character: line.indexOf("mov") + 3 },
+          },
+          newText: "MOV",
+        });
+      }
+    });
+
     respond({
       id,
-      result: [
-        {
-          range: {
-            start: { line: 0, character: 0 },
-            end: { line: 0, character: 5 },
-          },
-          newText: "Hello",
-        },
-      ],
+      result: edits,
     });
   }
   if (method === "shutdown") {
