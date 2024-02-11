@@ -36,16 +36,22 @@ const respond = (message) => {
   Deno.stdout.write(encoder.encode(response));
 };
 
-const decoder = new TextDecoder();
-for await (const chunk of Deno.stdin.readable) {
+const parseRequest = (chunk) => {
+  const decoder = new TextDecoder();
   const message = decoder.decode(chunk);
-  log(message);
-
   const lengthMatch = message.match(/Content-Length: (\d+)\r\n/);
   const contentLength = parseInt(lengthMatch[1], 10);
   const messageStart = message.indexOf("\r\n\r\n") + 4;
   const body = message.slice(messageStart, messageStart + contentLength);
-  const { method, id } = JSON.parse(body);
+  return JSON.parse(body);
+};
+
+const documents = {};
+
+for await (const chunk of Deno.stdin.readable) {
+  log(new TextDecoder().decode(chunk));
+  const request = parseRequest(chunk);
+  const { method, id } = request;
 
   if (method === "initialize") {
     const result = {
@@ -58,6 +64,27 @@ for await (const chunk of Deno.stdin.readable) {
       },
     };
     respond({ id, result });
+  }
+  if (method === "textDocument/didOpen") {
+    const { uri, text } = request.params.textDocument;
+    documents[uri] = text;
+  }
+  if (method === "textDocument/formatting") {
+    const { uri } = request.params.textDocument;
+    const text = documents[uri];
+    log(text);
+    respond({
+      id,
+      result: [
+        {
+          range: {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 5 },
+          },
+          newText: "Hello",
+        },
+      ],
+    });
   }
   if (method === "shutdown") {
     respond({ id, result: null });
