@@ -14,10 +14,12 @@ O_RDWR = 0x2
 
 .text
 .global STDOUT
+.global O_RDONLY
 .global sys.close
 .global sys.exit
 .global sys.read
 .global sys.write
+.global sys.open
 
 
 /**
