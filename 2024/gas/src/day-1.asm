@@ -18,19 +18,23 @@ _start:
 		call 	sys.open
         mov 	%rax, (fd)
 
+.R1:
         mov     (fd), %rdi
         mov     $buf, %rsi
         mov     $buf_len, %rdx
         call    sys.read
         mov     %rax, (bytes)
 
-        mov     (fd), %rdi
-		call 	sys.close
-
 		mov 	$STDOUT, %rdi
 		mov 	$buf, %rsi
 		mov 	(bytes), %rdx
 		call 	sys.write
 
-		mov 	$7, %rdi
+        cmp     $0, (bytes)
+        jg      .R1
+
+        mov     (fd), %rdi
+		call 	sys.close
+
+		mov 	$0, %rdi
 		call 	sys.exit
