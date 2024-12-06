@@ -20,7 +20,7 @@
  */
 int:
 	mov	%rdi, %rax
-	sub	$48, %rdi
+	sub	$48, %rax
 	cmp	$9, %rax
 	jg	1f
 	cmp	$0, %rax
@@ -68,6 +68,13 @@ _start:
 
         # Interpret a single line
         mov     $buf, %rdi
+	mov	$5, %rsi
+	call	atoi
+
+        # Interpret a single line
+	mov	$7, %rsi
+	mov	buf, %r8
+        lea     (%r8, %rsi, 1), %rdi
 	mov	$5, %rsi
 	call	atoi
 
