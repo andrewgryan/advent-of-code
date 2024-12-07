@@ -136,6 +136,37 @@ sum:
 	jl	1b
 	ret
 
+/**
+ *  Similarity
+ *
+ *  %rdi - left array
+ *  %rsi - right array
+ *  %rdx - array length
+ */
+similarity:
+	push	%rbp
+	mov	%rsp, %rbp
+	sub	$24, %rsp
+
+	mov	%rdi, 0x08(%rsp)
+	mov	%rsi, 0x10(%rsp)
+	mov	%rdx, 0x18(%rsp)
+
+	xor	%rcx, %rcx
+	jmp 	2f
+1:
+	inc	%rcx
+2:
+	mov	(%rdi, %rcx, 0x8), %rax
+	cmp	%rdx, %rcx
+	jl	1b
+
+	mov	%rbp, %rsp
+	pop	%rbp
+	ret
+
+search:
+	ret
 
 _start:
 	# Example
@@ -203,16 +234,12 @@ _start:
         mov     (fd), %rdi
         call    sys.close
 
-	# Sum array
+	# Similarity metric
         mov     $left, %rdi
-        mov     $1000, %rsi
-        call    sum
-debug1:
-	# Sum array
-        mov     $right, %rdi
-        mov     $1000, %rsi
-        call    sum
-debug2:
+        mov     $right, %rsi
+        movq    $1000, %rdx
+	call	similarity
+
         # Sort left array
         mov     $left, %rdi
         movq    $1000, %rsi
