@@ -59,6 +59,8 @@ atoi:
  *  %rsi - uint sizeof array
  */
 sort:
+	mov	%rsi, %r11
+	dec	%r11
 4:
 	xor	%rcx, %rcx  # Line counter
 	xor	%r10, %r10  # Swap flag
@@ -69,7 +71,7 @@ sort:
 	jg	1f
 3:
 	inc	%rcx
-	cmp	%rsi, %rcx
+	cmp	%r11, %rcx
 	jl	2b
 	cmp	$1, %r10
 	je	4b
