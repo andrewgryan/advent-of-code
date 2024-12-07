@@ -2,6 +2,7 @@
         buf: .space 14, 0
         buf_len = 14
 
+        i: .quad 0
         fd: .quad 0
         bytes: .quad 0
         path: .ascii "src/input-1"
@@ -51,45 +52,69 @@ atoi:
 	mov	%r9, %rax
 	ret
 
+
+sort:
+    ret
+
+
 _start:
         # Open file
         mov     $path, %rdi
         mov     $O_RDONLY, %rsi
         call    sys.open
         mov     %rax, (fd)
+        movq    $0, (i)
 
 1:
-        # Read 14 chars into buffer
+        # Read line into buffer
         mov     (fd), %rdi
         mov     $buf, %rsi
         mov     $buf_len, %rdx
         call    sys.read
         mov     %rax, (bytes)
 
-        # Interpret a single line
+        # Parse left integer
         mov     $buf, %rdi
 	    mov	    $5, %rsi
 	    call	atoi
+        mov     $left, %rdi
+        mov     (i), %rcx
+	    movq    %rax, (%rdi, %rcx, 8)
 
-        # Interpret a single line
+        # Parse right integer
         mov     $buf, %rdi
         lea     0x7(%rdi), %rdi
 	    mov	    $5, %rsi
 	    call	atoi
+        mov     $right, %rdi
+        mov     (i), %rcx
+	    movq    %rax, (%rdi, %rcx, 8)
 
-        # Print line
-        mov     $STDOUT, %rdi
-        mov     $buf, %rsi
-        mov     (bytes), %rdx
-        call    sys.write
+        # # Print line
+        # mov     $STDOUT, %rdi
+        # mov     $buf, %rsi
+        # mov     (bytes), %rdx
+        # call    sys.write
 
         # Continue if more bytes  to read
+        incq    (i)
         cmp     $0, (bytes)
         jg      1b
 
         # Close file
         mov     (fd), %rdi
         call    sys.close
+
+        # Sort left array
+        mov     $left, %rdi
+        movq    $1000, %rsi
+        call    sort
+
+        # Sort right array
+        mov     $right, %rdi
+        movq    $1000, %rsi
+        call    sort
+        
 
         # Exit program
         mov     $0, %rdi
