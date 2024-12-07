@@ -7,11 +7,17 @@
         bytes: .quad 0
         path: .ascii "src/input-1"
 
-        left: .space 8000
-        right: .space 8000
-        gap: .space 8000
+        gap: .space 8008
+        left: .space 8008
+        right: .space 8008
 	lines = 1000
 
+	x:
+	.quad 3, 4, 2, 1, 3, 3
+	y:
+	.quad 4, 3, 5, 3, 9, 3
+	z:
+	.quad 0, 0, 0, 0, 0, 0
 
 .text
 .global _start
@@ -123,7 +129,7 @@ sum:
 	xor	%r8, %r8
 	xor	%r10, %r10  # Line counter
 1:
-	mov	(%rdi, %r10, 0x8), %r8
+	movq	(%rdi, %r10, 0x8), %r8
 	add	%r8, %rax
 	inc	%r10
 	cmp	%rsi, %r10
@@ -132,6 +138,23 @@ sum:
 
 
 _start:
+	# Example
+        mov     $x, %rdi
+        movq    $6, %rsi
+        call    sort
+        mov     $y, %rdi
+        movq    $6, %rsi
+        call    sort
+	mov	$x, %rdi
+	mov	$y, %rsi
+	mov	$z, %rdx
+	mov	$6, %rcx
+	call	distance
+        mov     $z, %rdi
+        movq    $6, %rsi
+        call    sum
+
+
         # Open file
         mov     $path, %rdi
         mov     $O_RDONLY, %rsi
@@ -180,6 +203,16 @@ _start:
         mov     (fd), %rdi
         call    sys.close
 
+	# Sum array
+        mov     $left, %rdi
+        mov     $1000, %rsi
+        call    sum
+debug1:
+	# Sum array
+        mov     $right, %rdi
+        mov     $1000, %rsi
+        call    sum
+debug2:
         # Sort left array
         mov     $left, %rdi
         movq    $1000, %rsi
@@ -189,7 +222,7 @@ _start:
         mov     $right, %rdi
         movq    $1000, %rsi
         call    sort
-        
+
 	# Distance between arrays
         mov     $left, %rdi
         mov     $right, %rsi
@@ -197,11 +230,12 @@ _start:
         movq    $1000, %rcx
         call    distance
 
+answer:
 	# Sum array
         mov     $gap, %rdi
         movq    $1000, %rsi
         call    sum
-answer:
+
         # Exit program
         mov     $0, %rdi
         call    sys.exit
