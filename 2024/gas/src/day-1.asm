@@ -68,15 +68,14 @@ _start:
 
         # Interpret a single line
         mov     $buf, %rdi
-	mov	$5, %rsi
-	call	atoi
+	    mov	    $5, %rsi
+	    call	atoi
 
         # Interpret a single line
-	mov	$7, %rsi
-	mov	buf, %r8
-        lea     (%r8, %rsi, 1), %rdi
-	mov	$5, %rsi
-	call	atoi
+        mov     $buf, %rdi
+        lea     0x7(%rdi), %rdi
+	    mov	    $5, %rsi
+	    call	atoi
 
         # Print line
         mov     $STDOUT, %rdi
