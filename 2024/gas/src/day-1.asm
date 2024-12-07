@@ -112,7 +112,20 @@ distance:
 	jmp 	3b
 
 
+/**
+ * %rdi - Array
+ * %rsi - Array length
+ */
 sum:
+	xor	%rax, %rax  # Sum
+	xor	%r8, %r8
+	xor	%r10, %r10  # Line counter
+1:
+	mov	(%rdi, %r10, 0x8), %r8
+	add	%r8, %rax
+	inc	%r10
+	cmp	%rsi, %r10
+	jl	1b
 	ret
 
 
@@ -186,7 +199,7 @@ _start:
         mov     $gap, %rdi
         movq    $1000, %rsi
         call    sum
-
+answer:
         # Exit program
         mov     $0, %rdi
         call    sys.exit
