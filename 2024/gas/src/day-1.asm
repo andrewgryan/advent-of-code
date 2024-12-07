@@ -9,6 +9,7 @@
 
         left: .space 8000
         right: .space 8000
+	lines = 1000
 
 
 .text
@@ -52,9 +53,31 @@ atoi:
 	mov	%r9, %rax
 	ret
 
-
+/**
+ *  %rdi - u64[] array
+ *  %rsi - uint sizeof array
+ */
 sort:
-    ret
+4:
+	xor	%rcx, %rcx  # Line counter
+	xor	%r10, %r10  # Swap flag
+2:
+	mov	(%rdi, %rcx, 0x8), %r8
+	mov	0x8(%rdi, %rcx, 0x8), %r9
+	cmp	%r9, %r8
+	jg	1f
+3:
+	inc	%rcx
+	cmp	$lines, %rcx
+	jl	2b
+	cmp	$1, %r10
+	je	4b
+	ret
+1:
+	movq	$1, %r10  # Set swap flag
+	movq	%r9, (%rdi, %rcx, 0x8)
+	movq	%r8, 0x8(%rdi, %rcx, 0x8)
+	jmp 	3b
 
 
 _start:
@@ -75,20 +98,21 @@ _start:
 
         # Parse left integer
         mov     $buf, %rdi
-	    mov	    $5, %rsi
-	    call	atoi
+	mov	$5, %rsi
+	call	atoi
         mov     $left, %rdi
         mov     (i), %rcx
-	    movq    %rax, (%rdi, %rcx, 8)
+	movq    %rax, (%rdi, %rcx, 8)
 
         # Parse right integer
         mov     $buf, %rdi
-        lea     0x7(%rdi), %rdi
-	    mov	    $5, %rsi
-	    call	atoi
+        # lea     0x8(%rdi), %rdi
+	add	$8, %rdi
+	mov	$5, %rsi
+	call	atoi
         mov     $right, %rdi
         mov     (i), %rcx
-	    movq    %rax, (%rdi, %rcx, 8)
+	movq    %rax, (%rdi, %rcx, 8)
 
         # # Print line
         # mov     $STDOUT, %rdi
