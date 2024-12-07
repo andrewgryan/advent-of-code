@@ -9,6 +9,7 @@
 
         left: .space 8000
         right: .space 8000
+        gap: .space 8000
 	lines = 1000
 
 
@@ -68,7 +69,7 @@ sort:
 	jg	1f
 3:
 	inc	%rcx
-	cmp	$lines, %rcx
+	cmp	%rsi, %rcx
 	jl	2b
 	cmp	$1, %r10
 	je	4b
@@ -78,6 +79,41 @@ sort:
 	movq	%r9, (%rdi, %rcx, 0x8)
 	movq	%r8, 0x8(%rdi, %rcx, 0x8)
 	jmp 	3b
+
+
+/**
+ * %rdi - left array
+ * %rsi - right array
+ * %rdx - gap array
+ * %rcx - array length
+ */
+distance:
+	xor	%r10, %r10  # Line counter
+	xor	%r11, %r11  # Distance register
+4:
+	mov	(%rdi, %r10, 0x8), %r8
+	mov	(%rsi, %r10, 0x8), %r9
+	cmp	%r9, %r8
+	jg	1f
+	jmp     2f
+3:
+	movq	%r11, (%rdx, %r10, 0x8)
+	inc	%r10
+	cmp	%rcx, %r10
+	jl	4b
+	ret
+2:
+	mov	%r9, %r11
+	sub	%r8, %r11
+	jmp 	3b
+1:
+	mov	%r8, %r11
+	sub	%r9, %r11
+	jmp 	3b
+
+
+sum:
+	ret
 
 
 _start:
@@ -139,6 +175,17 @@ _start:
         movq    $1000, %rsi
         call    sort
         
+	# Distance between arrays
+        mov     $left, %rdi
+        mov     $right, %rsi
+        movq    $gap, %rdx
+        movq    $1000, %rcx
+        call    distance
+
+	# Sum array
+        mov     $gap, %rdi
+        movq    $1000, %rsi
+        call    sum
 
         # Exit program
         mov     $0, %rdi
