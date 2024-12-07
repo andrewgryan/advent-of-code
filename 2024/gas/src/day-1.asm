@@ -148,9 +148,9 @@ similarity:
 	mov	%rsp, %rbp
 	sub	$24, %rsp
 
-	mov	%rdi, 0x08(%rsp)
-	mov	%rsi, 0x10(%rsp)
-	mov	%rdx, 0x18(%rsp)
+	mov	%rdi, 0x00(%rsp)
+	mov	%rsi, 0x08(%rsp)
+	mov	%rdx, 0x10(%rsp)
 
 	xor	%rcx, %rcx
 	jmp 	2f
