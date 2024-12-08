@@ -156,7 +156,6 @@ similarity:
 
 	xor	%r10, %r10
 	xor	%rcx, %rcx
-	mov	$592, %rcx
 	jmp 	2f
 1:
 	inc	%rcx
@@ -179,11 +178,12 @@ similarity:
 	cmp	0x10(%rsp), %r8
 	jl 	4b
 
-	# Multiply current number by count and add to sum
+	# Multiply current number by count, add to sum, reset count
 	xor 	%edx, %edx
 	mov 	0x18(%rsp), %eax
 	mul 	%r10d
 	add	%eax, 0x20(%rsp)
+	movq 	$0, 0x18(%rsp)
 
 	cmp	0x10(%rsp), %rcx
 	jl	1b
