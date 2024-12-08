@@ -146,27 +146,55 @@ sum:
 similarity:
 	push	%rbp
 	mov	%rsp, %rbp
-	sub	$24, %rsp
+	sub	$0x28, %rsp
 
 	mov	%rdi, 0x00(%rsp)
 	mov	%rsi, 0x08(%rsp)
 	mov	%rdx, 0x10(%rsp)
+	movq	$0x0, 0x18(%rsp)
+	movq	$0x0, 0x20(%rsp)
 
+	xor	%r10, %r10
 	xor	%rcx, %rcx
+	mov	$592, %rcx
 	jmp 	2f
 1:
 	inc	%rcx
 2:
-	mov	(%rdi, %rcx, 0x8), %rax
-	cmp	%rdx, %rcx
+	mov	0x00(%rsp), %rdi
+	mov	(%rdi, %rcx, 0x8), %r10
+
+	xor	%r8, %r8
+	xor	%r9, %r9
+	jmp 	3f
+4:
+	mov	0x08(%rsp), %rdi
+	mov	(%rdi, %r8, 0x8), %r9
+	xor	%rax, %rax
+	cmp	%r10, %r9
+	sete	%al
+	add	%rax, 0x18(%rsp)
+	inc	%r8
+3:
+	cmp	0x10(%rsp), %r8
+	jl 	4b
+
+	# Multiply current number by count and add to sum
+	xor 	%edx, %edx
+	mov 	0x18(%rsp), %eax
+	mul 	%r10d
+	add	%eax, 0x20(%rsp)
+
+	cmp	0x10(%rsp), %rcx
 	jl	1b
+
+debug:
+	mov	0x20(%rsp), %rax
 
 	mov	%rbp, %rsp
 	pop	%rbp
 	ret
 
-search:
-	ret
 
 _start:
 	# Example
