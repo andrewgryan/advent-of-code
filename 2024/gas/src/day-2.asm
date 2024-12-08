@@ -52,8 +52,8 @@ alloc:
 	mov	%rax, 0x08(%rsp)
 
 	mov	$0x0c, %rax
-	mov	0x0(%rsp), %rdi
-	add	0x08(%rsp), %rdi
+	mov	0x08(%rsp), %rdi
+	add	0x0(%rsp), %rdi
 	syscall
 
 	mov	0x08(%rsp), %rax
