@@ -32,14 +32,59 @@ _start:
 	mov	(handle), %rdi
 	call	sys.close
 
-	# Print copied memory
-	mov	$STDOUT, %rdi
-	mov	(ptr), %rsi
-	mov	$32768, %rdx
-	call	sys.write
+	# Attempt a solution to part 1
+	mov	(ptr), %rdi
+	mov	$32768, %rsi
+	call	part_1
 
 	mov	$0, %rdi
 	call	sys.exit
+
+
+part_1:
+	push	%rbp
+	mov	%rsp, %rbp
+	sub	$0x08, %rsp
+
+	mov	%rdi, 0x0(%rsp)
+
+	xor	%rcx, %rcx	# %rcx = 0
+1:
+	mov	0x0(%rsp), %rdi
+	movzb	(%rdi, %rcx), %rdi
+	call	is_space
+	cmp	$1, %al
+	je	2f
+	
+
+	call	is_newline
+	cmp	$1, %al
+	je	2f
+
+	call	int
+
+2:
+	inc	%rcx		# %rcx += 1
+	cmp	%rcx, %rsi
+	jg	1b		# while (%rsi > %rcx):
+
+	mov	%rbp, %rsp
+	pop	%rbp
+	ret
+
+
+is_space:
+	xor	%rax, %rax
+	cmp	$0x20, %rdi
+	sete	%al
+	ret
+
+
+is_newline:
+	xor	%rax, %rax
+	cmp	$0x0a, %rdi
+	sete	%al
+	ret
 
 
 /**
