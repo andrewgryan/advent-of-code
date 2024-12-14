@@ -52,6 +52,7 @@ part_1:
 1:
 	mov	0x0(%rsp), %rdi
 	movzb	(%rdi, %rcx), %rdi
+
 	call	is_space
 	cmp	$1, %al
 	je	2f
@@ -59,11 +60,12 @@ part_1:
 
 	call	is_newline
 	cmp	$1, %al
-	je	2f
+	je	3f
 
 	call	int
 
 2:
+3:
 	inc	%rcx		# %rcx += 1
 	cmp	%rcx, %rsi
 	jg	1b		# while (%rsi > %rcx):
