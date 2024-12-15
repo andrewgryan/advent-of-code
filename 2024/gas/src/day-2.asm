@@ -55,7 +55,6 @@ part_1:
 	movq	$-1, 0x10(%rsp)   # Previous level
 	movq	$-1, 0x18(%rsp)   # Current level
 
-	xor	%r8, %r8
 	xor	%r9, %r9
 	xor	%r10, %r10
 	mov	0x0(%rsp), %r11
@@ -107,8 +106,9 @@ is_safe:
 	jg	1f
 	jmp 	2f
 3:
-	# TODO: Check less than 2
-	movzb	$1, %al
+	shr	$1, %rax
+	cmp	$0, %rax
+	sete	%al
 	ret
 2:
 	mov	%rdi, %rax
