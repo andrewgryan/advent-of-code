@@ -54,7 +54,7 @@ part_1:
 	mov	%rsi, 0x08(%rsp)  # Buffer length
 	movq	$0, 0x10(%rsp)    # Safe report counter
 	movq	$-1, 0x18(%rsp)   # Previous level
-	movq	$0, 0x20(%rsp)    # Safe flag
+	movq	$1, 0x20(%rsp)    # Safe flag
 
 	xor	%r9, %r9
 	xor	%r10, %r10
@@ -103,17 +103,21 @@ part_1:
 	mov	0x18(%rsp), %rdi
 	mov	%r9, %rsi
 	call	is_safe
+	and	%al, 0x20(%rsp)   # Update SAFE flag
 
-	xor	%r9, %r9          # Reset number
-	movq	$-1, 0x18(%rsp)   # Previous level
-	incq	0x10(%rsp)        # TODO: count safe correctly
+	mov	0x20(%rsp), %rax  # Load SAFE flag
+	add	%rax, 0x10(%rsp)  # Add to SAFE report tally
+
+	xor	%r9, %r9          # RESET number
+	movq	$-1, 0x18(%rsp)   # RESET Previous level
+	movq	$1, 0x20(%rsp)    # RESET Safe flag
 	jmp 	4b
 
 5:
 	mov	0x18(%rsp), %rdi
 	mov	%r9, %rsi
 	call	is_safe
-	mov	%rax, 0x20(%rsp)
+	and	%al, 0x20(%rsp)   # Update SAFE flag
 	jmp	6b
 
 /**
