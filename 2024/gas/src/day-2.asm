@@ -1,5 +1,5 @@
 .data
-	path: .ascii "src/input-2"
+	path: .ascii "src/example-2"
 	handle: .quad 0
 	buffer: .space 1024, 0
 	size = 1024
@@ -48,14 +48,21 @@ _start:
 part_1:
 	push	%rbp
 	mov	%rsp, %rbp
-	sub	$0x08, %rsp
+	sub	$0x20, %rsp
 
-	mov	%rdi, 0x0(%rsp)
+	mov	%rdi, 0x00(%rsp)
+	movq	$0x0, 0x08(%rsp)  # Safe report counter
+	movq	$-1, 0x10(%rsp)   # Previous level
+	movq	$-1, 0x18(%rsp)   # Current level
+
+	xor	%r8, %r8
+	xor	%r9, %r9
+	xor	%r10, %r10
+	mov	0x0(%rsp), %r11
 
 	xor	%rcx, %rcx	# %rcx = 0
 1:
-	mov	0x0(%rsp), %rdi
-	movzb	(%rdi, %rcx), %rdi
+	movzb	(%r11, %rcx), %rdi
 
 	cmp	$SPACE, %dil
 	je	2f
@@ -63,9 +70,17 @@ part_1:
 	cmp	$NEWLINE, %dil
 	je	3f
 
-	call	int
+	# 	Multiply sum by 10
+	mov	$10, %r10d
+	xor 	%edx, %edx
+	mov 	%r9d, %eax
+	mul 	%r10d
+	mov	%rax, %r9
 
-2:
+	# 	Add to sum
+	call	int
+	add	%rax, %r9
+
 3:
 	inc	%rcx		# %rcx += 1
 	cmp	%rcx, %rsi
@@ -74,6 +89,35 @@ part_1:
 	mov	%rbp, %rsp
 	pop	%rbp
 	ret
+2:
+	#	Reset registers
+	mov	%r9, %r12
+	xor	%r9, %r9
+	jmp 	3b
+
+
+/**
+ * If readings differ by two or less
+ *
+ * %rdi - current level
+ * %rsi - previous level
+ */
+is_safe:
+	cmp	%rdi, %rsi
+	jg	1f
+	jmp 	2f
+3:
+	# TODO: Check less than 2
+	movzb	$1, %al
+	ret
+2:
+	mov	%rdi, %rax
+	sub	%rsi, %rax
+	jmp	3b
+1:
+	mov	%rsi, %rax
+	sub	%rdi, %rax
+	jmp	3b
 
 
 /**
