@@ -103,7 +103,7 @@ part_1:
 	mov	0x18(%rsp), %rdi
 	mov	%r9, %rsi
 	call	is_safe
-	and	%al, 0x20(%rsp)   # Update SAFE flag
+	and	%al, 0x20(%rsp)   # AND SAFE flag
 
 	mov	0x20(%rsp), %rax  # Load SAFE flag
 	add	%rax, 0x10(%rsp)  # Add to SAFE report tally
@@ -116,8 +116,9 @@ part_1:
 5:
 	mov	0x18(%rsp), %rdi
 	mov	%r9, %rsi
+debug:
 	call	is_safe
-	and	%al, 0x20(%rsp)   # Update SAFE flag
+	and	%al, 0x20(%rsp)   # AND SAFE flag
 	jmp	6b
 
 /**
