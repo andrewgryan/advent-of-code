@@ -1,4 +1,4 @@
-day = 1
+day = 2
 bin/day-$(day): obj/day-$(day).o obj/sys.o obj/math.o
 	x86_64-linux-gnu-ld -o bin/day-$(day) obj/day-$(day).o obj/sys.o obj/math.o
 

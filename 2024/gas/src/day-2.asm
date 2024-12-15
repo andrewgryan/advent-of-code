@@ -5,6 +5,10 @@
 	size = 1024
 	bytes_read: .quad 0
 	ptr: .quad 0
+
+	# ASCII character codes
+	SPACE = 0x20
+	NEWLINE = 0x0a
 	
 
 .text
@@ -53,13 +57,10 @@ part_1:
 	mov	0x0(%rsp), %rdi
 	movzb	(%rdi, %rcx), %rdi
 
-	call	is_space
-	cmp	$1, %al
+	cmp	$SPACE, %dil
 	je	2f
-	
 
-	call	is_newline
-	cmp	$1, %al
+	cmp	$NEWLINE, %dil
 	je	3f
 
 	call	int
@@ -72,20 +73,6 @@ part_1:
 
 	mov	%rbp, %rsp
 	pop	%rbp
-	ret
-
-
-is_space:
-	xor	%rax, %rax
-	cmp	$0x20, %rdi
-	sete	%al
-	ret
-
-
-is_newline:
-	xor	%rax, %rax
-	cmp	$0x0a, %rdi
-	sete	%al
 	ret
 
 
