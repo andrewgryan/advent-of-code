@@ -48,12 +48,13 @@ _start:
 part_1:
 	push	%rbp
 	mov	%rsp, %rbp
-	sub	$0x20, %rsp
+	sub	$0x28, %rsp
 
-	mov	%rdi, 0x00(%rsp)
-	movq	$0x0, 0x08(%rsp)  # Safe report counter
-	movq	$-1, 0x10(%rsp)   # Previous level
-	movq	$-1, 0x18(%rsp)   # Current level
+	mov	%rdi, 0x00(%rsp)  # Buffer handle
+	mov	%rsi, 0x08(%rsp)  # Buffer length
+	movq	$0, 0x10(%rsp)    # Safe report counter
+	movq	$-1, 0x18(%rsp)   # Previous level
+	movq	$0, 0x20(%rsp)    # Safe flag
 
 	xor	%r9, %r9
 	xor	%r10, %r10
@@ -80,20 +81,40 @@ part_1:
 	call	int
 	add	%rax, %r9
 
-3:
-	inc	%rcx		# %rcx += 1
-	cmp	%rcx, %rsi
-	jg	1b		# while (%rsi > %rcx):
+4:
+	inc	%rcx		  # %rcx += 1
+	cmp	%rcx, 0x08(%rsp)
+	jg	1b		  # while (len(buf) > %rcx):
 
+	mov	0x10(%rsp), %rax  # Safe counter
 	mov	%rbp, %rsp
 	pop	%rbp
 	ret
 2:
-	#	Reset registers
-	mov	%r9, %r12
+	#	SPACE
+	cmp	$-1, 0x18(%rsp)
+	jne	5f
+6:
+	mov	%r9, 0x18(%rsp)
 	xor	%r9, %r9
-	jmp 	3b
+	jmp 	4b
+3:
+	#	NEWLINE
+	mov	0x18(%rsp), %rdi
+	mov	%r9, %rsi
+	call	is_safe
 
+	xor	%r9, %r9          # Reset number
+	movq	$-1, 0x18(%rsp)   # Previous level
+	incq	0x10(%rsp)        # TODO: count safe correctly
+	jmp 	4b
+
+5:
+	mov	0x18(%rsp), %rdi
+	mov	%r9, %rsi
+	call	is_safe
+	mov	%rax, 0x20(%rsp)
+	jmp	6b
 
 /**
  * If readings differ by two or less
