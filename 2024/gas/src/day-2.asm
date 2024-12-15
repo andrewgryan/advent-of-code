@@ -1,5 +1,5 @@
 .data
-	path: .ascii "src/example-2"
+	path: .ascii "src/input-2"
 	handle: .quad 0
 	buffer: .space 1024, 0
 	size = 1024
@@ -40,6 +40,7 @@ _start:
 	mov	(ptr), %rdi
 	mov	$32768, %rsi
 	call	part_1
+solution:
 
 	mov	$0, %rdi
 	call	sys.exit
@@ -132,9 +133,8 @@ is_safe:
 	jg	1f
 	jmp 	2f
 3:
-	shr	$1, %rax
-	cmp	$0, %rax
-	sete	%al
+	cmp	$2, %rax
+	setle	%al
 	ret
 2:
 	mov	%rdi, %rax
