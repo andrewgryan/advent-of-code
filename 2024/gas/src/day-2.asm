@@ -14,6 +14,20 @@
 .text
 .global	_start
 _start:
+	# Array interface
+	lea	alloc(%rip), %rdi
+	mov	$32, %rsi
+	call	range
+
+	mov	$5, %rsi
+	mov	$7, %rdx
+	call	set
+
+	xor	%rdx, %rdx
+	xor	%rax, %rax
+	mov	$3, %rsi
+	call	get
+
 	# Memory allocator
 	mov	$32768, %rdi
 	call	alloc
@@ -117,7 +131,6 @@ part_1:
 5:
 	mov	0x18(%rsp), %rdi
 	mov	%r9, %rsi
-debug:
 	call	is_safe
 	and	%al, 0x20(%rsp)   # AND SAFE flag
 	jmp	6b
