@@ -13,3 +13,9 @@ obj/math.o: src/math.asm
 
 obj/array.o: src/array.asm
 	x86_64-linux-gnu-as -g -o obj/array.o src/array.asm
+
+
+main: main.o
+	ld -o bin/main obj/main.o
+main.o: src/main.asm
+	as -g -o obj/main.o src/main.asm
