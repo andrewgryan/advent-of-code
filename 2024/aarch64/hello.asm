@@ -1,4 +1,7 @@
 .data
+NULL = 0x0
+NULL_FD = -1
+
 O_RDONLY = 0
 O_WRONLY = 1
 O_CREAT = 100 // Create and write is 101
@@ -44,7 +47,7 @@ _start:
         svc #0
 
         mov x0, x4
-        mov x0, #0x0
+        ldr x0, =NULL
         mov x1, #14
         ldr x2, =PROT_READ
         ldr x3, =MAP_PRIVATE
@@ -52,11 +55,12 @@ _start:
         ldr w8, =SYS_MMAP
         svc #0
 
-        mov x0, #0x0
+        ldr x0, =NULL
         ldr x1, =(5 * KB)
         ldr x2, =(PROT_READ | PROT_WRITE)
         ldr x3, =(MAP_PRIVATE | MAP_ANONYMOUS)
-        mov x4, #-1
+        ldr x4, =NULL_FD
+        mov x5, #0x0
         ldr w8, =SYS_MMAP
         svc #0
 
