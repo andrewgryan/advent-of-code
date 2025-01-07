@@ -33,7 +33,7 @@ msg_len = . - msg
 fname:
         .asciz "file.txt"
 
-stat_buf: .space 64
+stat_buf: .space 128
 fd: .dword 0
 
 .text
@@ -53,7 +53,7 @@ main:
         ldr w8, =SYS_FSTATAT
         svc #0
 
-        mov x0, #7
+        ldr x0, [x2, #48]
         ret
 
 
