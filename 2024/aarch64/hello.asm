@@ -19,6 +19,8 @@ MAP_SHARED = 0x01
 MAP_PRIVATE = 0x02
 MAP_ANONYMOUS = 0x20
 
+KB = 1024
+
 msg:
         .ascii "Hello, World!\n"
 msg_len = . - msg
@@ -51,7 +53,7 @@ _start:
         svc #0
 
         mov x0, #0x0
-        mov x1, #1024
+        ldr x1, =(5 * KB)
         ldr x2, =(PROT_READ | PROT_WRITE)
         ldr x3, =(MAP_PRIVATE | MAP_ANONYMOUS)
         mov x4, #-1
