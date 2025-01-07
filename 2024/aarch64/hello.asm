@@ -10,6 +10,7 @@ SYS_WRITE = 64
 SYS_OPENAT = 56
 SYS_EXIT = 93
 SYS_MMAP = 222
+SYS_FSTATAT = 79
 
 AT_FDCWD = -100
 
@@ -24,37 +25,60 @@ MAP_ANONYMOUS = 0x20
 
 KB = 1024
 
+STDOUT = 0x1
+
 msg:
         .ascii "Hello, World!\n"
 msg_len = . - msg
 fname:
         .asciz "file.txt"
 
+stat_buf: .space 64
+fd: .dword 0
+
 .text
 .global _start
-_start:
-        mov x0, #1
+
+main:
+        ldr x0, =STDOUT
         ldr x1, =msg
         ldr x2, =msg_len
         ldr w8, =SYS_WRITE
         svc #0
 
+        ldr x0, =AT_FDCWD
+        ldr x1, =fname
+        ldr x2, =stat_buf
+        mov x3, #0x0
+        ldr w8, =SYS_FSTATAT
+        svc #0
+
+        mov x0, #7
+        ret
+
+
+open_file:
         ldr w8, =SYS_OPENAT
         ldr x0, =AT_FDCWD
         ldr x1, =fname
         ldr x2, =O_RDONLY
         mov x3, #400
         svc #0
+        ret
 
-        mov x0, x4
+
+mmap_file:
         ldr x0, =NULL
         mov x1, #14
         ldr x2, =PROT_READ
         ldr x3, =MAP_PRIVATE
+        ldr x4, =fd
         mov x5, #0x0
         ldr w8, =SYS_MMAP
         svc #0
+        ret
 
+mmap_alloc:
         ldr x0, =NULL
         ldr x1, =(5 * KB)
         ldr x2, =(PROT_READ | PROT_WRITE)
@@ -63,10 +87,9 @@ _start:
         mov x5, #0x0
         ldr w8, =SYS_MMAP
         svc #0
+        ret
 
-        mov x9, #42
-        strb w9, [x0]
-        ldrb w0, [x0]
-
+_start:
+        bl main
         ldr w8, =SYS_EXIT
         svc #0
