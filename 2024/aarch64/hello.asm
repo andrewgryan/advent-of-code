@@ -39,13 +39,8 @@ fd: .dword 0
 .text
 .global _start
 
-main:
-        ldr x0, =STDOUT
-        ldr x1, =msg
-        ldr x2, =msg_len
-        ldr w8, =SYS_WRITE
-        svc #0
 
+stat:
         ldr x0, =AT_FDCWD
         ldr x1, =fname
         ldr x2, =stat_buf
@@ -54,6 +49,18 @@ main:
         svc #0
 
         ldr x0, [x2, #48]
+        ret
+
+main:
+        stp x29, x30, [sp, #16]
+        ldr x0, =STDOUT
+        ldr x1, =msg
+        ldr x2, =msg_len
+        ldr w8, =SYS_WRITE
+        svc #0
+
+        bl stat
+        ldp x29, x30, [sp, #16]
         ret
 
 
