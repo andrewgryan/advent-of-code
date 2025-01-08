@@ -53,14 +53,21 @@ stat:
 
 main:
         stp x29, x30, [sp, #16]
+
+        bl open_file
+        bl mmap_file
+
+        mov x1, x0
+        mov x2, #15
+        bl write
+
+        ldp x29, x30, [sp, #16]
+        ret
+
+write:
         ldr x0, =STDOUT
-        ldr x1, =msg
-        ldr x2, =msg_len
         ldr w8, =SYS_WRITE
         svc #0
-
-        bl stat
-        ldp x29, x30, [sp, #16]
         ret
 
 
@@ -75,11 +82,11 @@ open_file:
 
 
 mmap_file:
+        mov x4, x0
         ldr x0, =NULL
         mov x1, #14
         ldr x2, =PROT_READ
         ldr x3, =MAP_PRIVATE
-        ldr x4, =fd
         mov x5, #0x0
         ldr w8, =SYS_MMAP
         svc #0
